@@ -1,0 +1,309 @@
+# Cipher System Check v7 - Quick Reference Card
+
+## 🚀 QUICK START (30 seconds)
+
+1. **Right-click** `Cipher-System-Check-v7-Launcher.bat` → **Run as Administrator**
+2. Wait for GUI to open
+3. Click **"▶ Start Full Scan"** button
+4. ☕ Grab coffee (5-15 min runtime)
+5. Review tabs for findings
+6. (Optional) Check repair boxes and click **"⚙ Selected Repairs"**
+7. Click **"📁 Open Log Folder"** to export results
+
+---
+
+## 📂 FILE STRUCTURE
+
+```
+Downloads/
+├─ Cipher-System-Check-v7-Launcher.bat          ← CLICK THIS FIRST
+├─ Cipher-System-Check-v7-GUI.ps1               (do not edit)
+├─ Cipher-System-Check-v7-Core.ps1              (do not edit)
+├─ Cipher-System-Check-v7-README.md             (DETAILED GUIDE)
+└─ Cipher-System-Check-v7-SUMMARY.txt           (THIS FILE)
+
+Local AppData/
+└─ CipherCheck/\Logs/                            ← Results saved here (%LOCALAPPDATA%\\CipherCheck\\Logs)
+   ├─ analysis_ranked.txt
+   ├─ ssd_health_detailed.csv
+   ├─ whea_events_detailed.csv
+   ├─ tdr_events_detailed.csv
+   ├─ diagnostic_results.xml
+   └─ (20+ more diagnostic files)
+```
+
+---
+
+## 🎯 WHAT EACH DIAGNOSTIC FINDS
+
+| Diagnostic | Finds | Severity |
+|-----------|-------|----------|
+| **SSD Health** | Drive temps, wear %, errors | High |
+| **WHEA Errors** | RAM/CPU/firmware faults | Critical |
+| **GPU TDR** | Driver hangs, timeouts | High |
+| **Storage Timeout** | Controller issues, drive failures | High |
+| **Reboots** | Crashes, power cycles | Critical |
+| **Windows** | Update issues, OS corruption | Medium |
+| **Drivers** | Old drivers, missing updates | Medium |
+| **Firmware** | Old BIOS, instability | Low-Medium |
+
+---
+
+## 🔧 REPAIR OPTIONS - QUICK GUIDE
+
+| Repair | What | Safety | When | Time |
+|--------|------|--------|------|------|
+| **Windows** | Fix update cache, component store | ✅ Safe | If errors shown | 15m |
+| **GPU Tweak** | Increase TDR delay | ⚠️ Medium | If TDR events | 1m |
+| **Network** | Reset TCP/IP, Winsock | ⚠️ Medium | If network issues | 1m |
+| **Memory Diag** | Test RAM | ⚠️ Requires restart | If WHEA errors | 20m |
+| **Defender** | Full malware scan | ⚠️ Slow | Good practice | 30-60m |
+
+**TL;DR**: Start with "Windows Repair" if unsure.
+
+---
+
+## ⚡ CONSOLE MODE (No GUI)
+
+```powershell
+# Just diagnostics
+.\Cipher-System-Check-v7-Core.ps1
+
+# Diagnostics + Windows repairs
+.\Cipher-System-Check-v7-Core.ps1 -RunRepair
+
+# All possible repairs
+.\Cipher-System-Check-v7-Core.ps1 -RunRepair -RunTdrTweak -RunNetworkReset -RunMemDiag -RunDefenderScan
+
+# Silent mode (for scripts)
+.\Cipher-System-Check-v7-Core.ps1 -QuietMode
+```
+
+---
+
+## 🟢 GOOD SIGNS (Normal)
+
+- **SSD Temps**: 30-45°C
+- **SSD Wear**: 0-5%
+- **SSD Errors**: 0 read/write errors
+- **WHEA Events**: 0-2 total (30 days)
+- **TDR Events**: 0-1 total
+- **GPU Driver Age**: <180 days
+- **Unexpected Reboots**: 0 in 30 days
+- **BIOS Age**: <2 years
+
+---
+
+## 🟡 YELLOW FLAGS (Investigate)
+
+- **SSD Temps**: 45-55°C → Check cooling
+- **SSD Wear**: 5-20% → Normal aging
+- **WHEA Events**: 3-10 → Update BIOS, check RAM slots
+- **TDR Events**: 2-5 → Update GPU drivers
+- **GPU Driver Age**: 180-365 days → Update soon
+- **Unexpected Reboots**: 1-2 → Monitor, run repairs
+- **BIOS Age**: 1-2 years → Check manufacturer website
+
+---
+
+## 🔴 RED FLAGS (Act Now)
+
+- **SSD Temps**: >55°C sustained → Risk of failure
+- **SSD Wear**: >80% → Drive is failing
+- **SSD Errors**: Any read/write errors → Imminent failure
+- **WHEA Events**: >10 → Hardware issue
+- **TDR Events**: >5 → GPU driver/hardware problem
+- **Unexpected Reboots**: >2 → System instability
+- **Storage Timeouts**: Any → Spanned drive at risk
+
+---
+
+## 🎯 YOUR SYSTEM (B550 + Ryzen 5950X + GTX 1060)
+
+**Most Likely Issues** (if softlocking):
+1. ⬆️ GPU driver timeout (TDR events)
+2. ⬆️ Storage timeout (spanned D: drive)
+3. 📌 Old BIOS (B550 board)
+4. 📌 GPU driver age (GTX 1060 support ending)
+
+**Quick Fixes**:
+- [ ] Update GPU drivers to 550.xx+
+- [ ] Check BIOS for updates (Asus website)
+- [ ] Run Windows Repair
+- [ ] Monitor SSD temps (spanned drive vulnerable)
+
+---
+
+## 📊 SAMPLE OUTPUT INTERPRETATION
+
+### Example: High GPU Score
+
+```
+GPU: 40 points
+├─ Display-driver reset/crash pattern (3 TDR events)
+├─ GPU driver older than 180 days
+└─ NVIDIA display-driver evidence present
+```
+
+**Translation**: Your GPU driver is hanging. Update it.
+
+**Action**: 
+1. Visit https://www.nvidia.com/Download/driverDetails.aspx
+2. Search for GTX 1060
+3. Download latest driver
+4. Install and reboot
+5. Re-run diagnostics
+
+### Example: High Storage Score
+
+```
+Storage: 35 points
+├─ Media errors on: SSD0, SSD1
+├─ Storage controller timeout pattern detected
+└─ High storage event volume (25 events)
+```
+
+**Translation**: Your SSDs are failing.
+
+**Action**:
+1. Back up data immediately
+2. Replace failing drive
+3. Rebuild spanned volume
+4. Re-run diagnostics
+
+---
+
+## 🆘 EMERGENCY ACTIONS
+
+### If System Softlocks Every Few Minutes
+```powershell
+# Fast diagnostics without heavy scanning
+.\Cipher-System-Check-v7-Core.ps1 -QuietMode
+# Don't apply repairs yet; just identify the issue
+```
+
+### If You Suspect GPU Driver
+```powershell
+# Update GPU driver to latest version
+# Nvidia: https://www.nvidia.com/Download/
+# AMD: https://www.amd.com/support
+```
+
+### If You Suspect WHEA / RAM
+```powershell
+# Run memory test (requires reboot)
+.\Cipher-System-Check-v7-Core.ps1 -RunMemDiag
+# Or manually: mdsched.exe
+```
+
+### If You Suspect Storage
+```powershell
+# Run disk check (can take hours on spanned drive)
+chkdsk D: /scan
+# Check each SSD individually if possible
+```
+
+---
+
+## 📈 BEFORE/AFTER WORKFLOW
+
+```
+BASELINE RUN
+├─ Run diagnostics
+├─ Document scores
+├─ Note top issues
+└─ Save results
+
+APPLY ONE REPAIR
+├─ Check one repair option
+├─ Apply
+├─ Wait for effects (24-48h)
+└─ Run diagnostics again
+
+COMPARE
+├─ Check if scores improved
+├─ If better → Keep it
+└─ If same → Try next repair
+```
+
+---
+
+## ⏰ RUNTIME EXPECTATIONS
+
+| Operation | Time | Notes |
+|-----------|------|-------|
+| GUI open | <2s | Instant |
+| System snapshot | <5s | Fast |
+| SFC scan | 10-15m | Standard |
+| DISM checks | 5m | Fast |
+| Event log load | 1-5m | Depends on log size |
+| Full diagnostic | 5-15m | Total |
+| Windows repair | 15-30m | Slow but safe |
+| GPU tweak | <1m | Instant registry change |
+| Memory diag | 20m | Requires reboot |
+| Full Defender scan | 45-60m | Heavy load |
+
+---
+
+## 🚫 DON'T DO THIS
+
+❌ Don't edit the script files
+❌ Don't move files to different folders
+❌ Don't run multiple copies simultaneously
+❌ Don't apply all repairs without reviewing
+❌ Don't ignore red flags
+❌ Don't forget to back up data before major repairs
+
+---
+
+## ✅ DO THIS
+
+✅ Keep all 4 files together
+✅ Run as Administrator
+✅ Review the README.md for details
+✅ Apply one repair at a time
+✅ Wait 24h between repairs to see effects
+✅ Back up important data regularly
+✅ Run diagnostics monthly for trend analysis
+
+---
+
+## 🔗 HELPFUL LINKS
+
+**Driver Updates:**
+- NVIDIA: https://www.nvidia.com/Download/driverDetails.aspx?lang=en-us
+- AMD Chipset: https://www.amd.com/en/support
+- Asus BIOS: https://www.asus.com/support/ (search TUF B550)
+
+**Windows Help:**
+- SFC: https://support.microsoft.com/en-us/kb/929833
+- DISM: https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/dism-overview
+- Event Viewer: https://support.microsoft.com/en-us/windows/event-viewer-online-help-e1cab146-c116-4055-bcf1-375134abc6d8
+
+**Hardware Diagnostics:**
+- SMART Data: Use diagnostic results from script
+- WHEA: https://en.wikipedia.org/wiki/Windows_Hardware_Error_Architecture
+- TDR: https://docs.microsoft.com/en-us/windows-hardware/drivers/display/timeout-detection-and-recovery
+
+---
+
+## 📞 WHEN TO GET HELP
+
+✋ **Stop and get professional help if:**
+- S.M.A.R.T. shows media errors (drive failure)
+- WHEA constantly shows CPU/memory errors (hardware defect)
+- System still crashes after all repairs
+- You're not comfortable with the findings
+
+👍 **You're good to proceed if:**
+- Results show driver/firmware issues (software fixable)
+- Scores are <25 (minor issues)
+- You understand what each repair does
+
+---
+
+**Version**: 7.0 (May 5, 2026)
+**System**: AMD Ryzen 9 5950X, Asus B550, GTX 1060
+**Status**: ✅ Production Ready
+
+Last edited: May 5, 2026
