@@ -1,14 +1,14 @@
-$files = @('Cipher-System-Check-v7-Core.ps1','Cipher-System-Check-v7-GUI.ps1')
-$root = Split-Path -Parent $PSScriptRoot
+$files = @('Cipher-System-Check-v7-Core.ps1', 'Cipher-System-Check-v7-GUI.ps1')
+$root = Resolve-Path (Join-Path $PSScriptRoot '..')
 foreach ($f in $files) {
     $path = Join-Path $root $f
-    $t = $null; $e = $null
-    [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$t, [ref]$e) | Out-Null
-    if ($e) {
-        Write-Host ("ERROR in {0}:" -f $f)
-        $e | ForEach-Object { Write-Host $_.Message }
+    $tokens = $null
+    $errors = $null
+    [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$tokens, [ref]$errors) | Out-Null
+    if ($errors.Count -gt 0) {
+        Write-Host "Parse errors in ${f}:" -ForegroundColor Red
+        $errors | Format-List | Out-String | Write-Host
         exit 1
-    } else {
-        Write-Host ("{0} OK" -f $f)
     }
+    Write-Host "OK: $f"
 }

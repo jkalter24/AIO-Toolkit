@@ -33,8 +33,6 @@ if ($script:Config.UserSpecific -and $script:Config.UserSpecific.CustomLogFolder
     $LogRoot = $script:Config.UserSpecific.CustomLogFolder
 } elseif ($script:Config.Logging.UseLocalAppData -and $env:LOCALAPPDATA) {
     $LogRoot = Join-Path $env:LOCALAPPDATA 'CipherCheck\Logs'
-} elseif ($env:LOCALAPPDATA) {
-    $LogRoot = Join-Path $env:LOCALAPPDATA 'CipherCheck\Logs'
 } else {
     $LogRoot = Join-Path $env:USERPROFILE $script:Config.Logging.FallbackFolder
 }
@@ -57,7 +55,7 @@ if ($TestMode) {
         StorageTimeouts = @()
         TopIssue = 'Test Mode - No issues detected'
         TopIssueScore = 0
-        AllScores = @{ Storage = 0; WHEA = 0; GPU = 0; Memory = 0 }
+        AllScores = @{ Storage = 0; Hardware = 0; WHEA = 0; GPU = 0; Memory = 0 }
         Timestamp = (Get-Date).ToString()
     }
 
@@ -198,8 +196,14 @@ function Complete-Progress {
     Write-ProgressSnapshot -Phase $Phase -Message $Message -Percent 100 -Detail $Detail -State 'Completed'
 }
 
-function Invoke-Cmd { param([string]$Cmd, [string]$OutName)
-    $output = cmd /c "$Cmd" 2>&1
+function Invoke-Cmd {
+    param(
+        [Parameter(Mandatory = $true)][string]$Cmd,
+        [Parameter(Mandatory = $true)][string]$OutName
+    )
+
+    $commandProcessor = if ($env:COMSPEC) { $env:COMSPEC } else { 'cmd.exe' }
+    $output = & $commandProcessor /d /s /c $Cmd 2>&1
     $output | Out-File -FilePath (Join-Path $LogRoot $OutName) -Encoding utf8 -Force
     return $output
 }

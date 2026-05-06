@@ -1,0 +1,8 @@
+# Runtime logs and local diagnostics
+*.log
+err.txt
+progress_snapshot.json
+progress_snapshot.txt
+results_incremental.json
+analysis_ranked.txt
+diagnostic_results.xml
