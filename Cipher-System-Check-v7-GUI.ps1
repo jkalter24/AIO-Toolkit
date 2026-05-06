@@ -703,16 +703,20 @@ function Start-LiveTracking {
     $script:LiveTimer = New-Object Windows.Threading.DispatcherTimer
     $script:LiveTimer.Interval = [TimeSpan]::FromMilliseconds($script:Config.Performance.GUIPollingIntervalMs)
     $script:LiveTimer.Add_Tick({
-        $snapshot = Get-ProgressSnapshot
-        if ($snapshot) {
-            if ($progressBar) { $progressBar.IsIndeterminate = $false; $progressBar.Value = [double]$snapshot.Percent }
-            if ($progressPercent) { $progressPercent.Text = ("{0:0.0}%" -f [double]$snapshot.Percent) }
-            if ($statusBlock) { $statusBlock.Text = $snapshot.Message }
-            if ($phaseBlock) { $phaseBlock.Text = "Phase: $($snapshot.Phase)" }
-            if ($etaBlock) { $etaBlock.Text = "ETA: $($snapshot.EtaText)" }
-            if ($liveViewBox) { $liveViewBox.Text = Format-LiveSnapshot -Snapshot $snapshot; $liveViewBox.ScrollToEnd() }
-            $incrementalResults = Get-IncrementalResults
-            if ($incrementalResults) { Update-IncrementalResultsView -Results $incrementalResults }
+        try {
+            $snapshot = Get-ProgressSnapshot
+            if ($snapshot) {
+                if ($progressBar) { $progressBar.IsIndeterminate = $false; $progressBar.Value = [double]$snapshot.Percent }
+                if ($progressPercent) { $progressPercent.Text = ("{0:0.0}%" -f [double]$snapshot.Percent) }
+                if ($statusBlock) { $statusBlock.Text = $snapshot.Message }
+                if ($phaseBlock) { $phaseBlock.Text = "Phase: $($snapshot.Phase)" }
+                if ($etaBlock) { $etaBlock.Text = "ETA: $($snapshot.EtaText)" }
+                if ($liveViewBox) { $liveViewBox.Text = Format-LiveSnapshot -Snapshot $snapshot; $liveViewBox.ScrollToEnd() }
+                $incrementalResults = Get-IncrementalResults
+                if ($incrementalResults) { Update-IncrementalResultsView -Results $incrementalResults }
+            }
+        } catch {
+            if ($liveViewBox) { $liveViewBox.Text = "Live update warning: $_" }
         }
     })
     $script:LiveTimer.Start()
@@ -842,18 +846,32 @@ function Get-ScoreValue {
 function Get-ResultItems {
     param($Items)
 
-    if ($null -eq $Items) { return @() }
-    return @($Items)
+    if ($null -eq $Items) { return ,@() }
+
+    $list = New-Object 'System.Collections.Generic.List[object]'
+    $isEnumerable = $Items -is [System.Collections.IEnumerable]
+    $isScalar = ($Items -is [string]) -or ($Items -is [System.Collections.IDictionary]) -or ($Items -is [pscustomobject])
+
+    if ($isEnumerable -and -not $isScalar) {
+        foreach ($item in $Items) {
+            if ($null -ne $item) { [void]$list.Add($item) }
+        }
+    } else {
+        [void]$list.Add($Items)
+    }
+
+    return ,$list.ToArray()
 }
 
 function New-ObjectCollection {
     param($Items)
 
     $collection = New-Object 'System.Collections.ObjectModel.ObservableCollection[object]'
-    foreach ($item in (Get-ResultItems $Items)) {
+    $resultItems = Get-ResultItems $Items
+    foreach ($item in $resultItems) {
         [void]$collection.Add($item)
     }
-    return $collection
+    return ,$collection
 }
 
 function Set-ResultGridItems {
@@ -866,11 +884,14 @@ function Set-ResultGridItems {
     )
 
     $normalizedItems = Get-ResultItems $Items
-    if ($Grid) { $Grid.ItemsSource = New-ObjectCollection $normalizedItems }
+    if ($Grid) {
+        $boundItems = New-ObjectCollection $normalizedItems
+        $Grid.ItemsSource = $boundItems
+    }
     if ($StatusBlock) {
         $StatusBlock.Text = if ($normalizedItems.Count -gt 0) { "Detected $($normalizedItems.Count) $FilledLabel." } else { $EmptyLabel }
     }
-    return $normalizedItems
+    return ,$normalizedItems
 }
 
 function Update-IncrementalResultsView {
@@ -968,7 +989,10 @@ function Update-SsdHealthView {
     param($Items)
 
     $ssdItems = Get-ResultItems $Items
-    if ($ssdHealthGrid) { $ssdHealthGrid.ItemsSource = New-ObjectCollection $ssdItems }
+    if ($ssdHealthGrid) {
+        $ssdBoundItems = New-ObjectCollection $ssdItems
+        $ssdHealthGrid.ItemsSource = $ssdBoundItems
+    }
     if (-not $ssdHealthCards) { return }
 
     $ssdHealthCards.Children.Clear()
