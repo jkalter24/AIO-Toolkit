@@ -52,9 +52,9 @@ $xaml = @"
         <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F4F8FC"/>
         <SolidColorBrush x:Key="TextSecondaryBrush" Color="#A8B4C4"/>
         <SolidColorBrush x:Key="TextMutedBrush" Color="#718096"/>
-        <SolidColorBrush x:Key="AccentBrush" Color="#38BDF8"/>
-        <SolidColorBrush x:Key="AccentGreenBrush" Color="#22C55E"/>
-        <SolidColorBrush x:Key="AccentAmberBrush" Color="#F59E0B"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#2A8FBD"/>
+        <SolidColorBrush x:Key="AccentGreenBrush" Color="#1E8F4D"/>
+        <SolidColorBrush x:Key="AccentAmberBrush" Color="#D97706"/>
         <SolidColorBrush x:Key="DangerBrush" Color="#EF4444"/>
 
         <Style x:Key="SectionLabelStyle" TargetType="TextBlock">
@@ -65,9 +65,9 @@ $xaml = @"
         </Style>
 
         <Style x:Key="PrimaryButtonStyle" TargetType="Button">
-            <Setter Property="Foreground" Value="#06121C"/>
+            <Setter Property="Foreground" Value="#F4F8FC"/>
             <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="BorderBrush" Value="#075985"/>
+            <Setter Property="BorderBrush" Value="#1E5E7A"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="16,10"/>
             <Setter Property="Height" Value="42"/>
@@ -77,7 +77,7 @@ $xaml = @"
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Opacity" Value="0.92"/></Trigger>
@@ -91,7 +91,7 @@ $xaml = @"
 
         <Style x:Key="AccentButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
             <Setter Property="Background" Value="{StaticResource AccentGreenBrush}"/>
-            <Setter Property="Foreground" Value="#04130A"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
         </Style>
 
         <Style x:Key="NavButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
@@ -168,22 +168,117 @@ $xaml = @"
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
             <Setter Property="Padding" Value="8,6"/>
             <Setter Property="BorderThickness" Value="0"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#123049"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="ScrollBar">
+            <Setter Property="Background" Value="#0B111A"/>
+            <Setter Property="Foreground" Value="#334155"/>
+            <Setter Property="Width" Value="10"/>
+            <Setter Property="MinWidth" Value="10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid x:Name="Root" Background="Transparent" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}">
+                            <Border Background="#0B111A" CornerRadius="6"/>
+                            <Track x:Name="PART_Track" IsDirectionReversed="True" Orientation="{TemplateBinding Orientation}">
+                                <Track.DecreaseRepeatButton><RepeatButton Opacity="0" IsTabStop="False" Focusable="False"/></Track.DecreaseRepeatButton>
+                                <Track.Thumb><Thumb Background="#334155" Margin="2"/></Track.Thumb>
+                                <Track.IncreaseRepeatButton><RepeatButton Opacity="0" IsTabStop="False" Focusable="False"/></Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <Style TargetType="TextBox">
             <Setter Property="Background" Value="#0F1722"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/>
             <Setter Property="CaretBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="SelectionBrush" Value="#245B78"/>
+            <Setter Property="SelectionTextBrush" Value="{StaticResource TextPrimaryBrush}"/>
         </Style>
         <Style TargetType="CheckBox">
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
             <Setter Property="Margin" Value="0,5,0,4"/>
         </Style>
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="#111827"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="ItemBorder" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#123049"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#16405F"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style TargetType="ComboBox">
             <Setter Property="Background" Value="#111827"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/>
-            <Setter Property="Height" Value="34"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton"
+                                          Foreground="{StaticResource TextPrimaryBrush}"
+                                          Focusable="False"
+                                          ClickMode="Press"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="ComboBorder" Background="#111827" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="34"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Margin="10,0,4,0" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="{StaticResource TextPrimaryBrush}" Text="{Binding SelectionBoxItem, RelativeSource={RelativeSource AncestorType=ComboBox}}"/>
+                                                <TextBlock Grid.Column="1" Text="v" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                                <Setter TargetName="ComboBorder" Property="Background" Value="#132033"/>
+                                            </Trigger>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade">
+                                <Border Background="#0F1722" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="8" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="240">
+                                    <ScrollViewer Margin="0,4" SnapsToDevicePixels="True">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
 
@@ -202,13 +297,13 @@ $xaml = @"
                             <TextBlock Text="Cipher" Foreground="{StaticResource TextPrimaryBrush}" FontSize="26" FontWeight="Bold"/>
                             <TextBlock Text="System Check v7" Foreground="{StaticResource AccentBrush}" FontSize="13" FontWeight="SemiBold"/>
                         </StackPanel>
-                        <Button x:Name="BtnToggleSidebar" Grid.Column="1" Content="◀" Style="{StaticResource NavButtonStyle}" Width="36" HorizontalContentAlignment="Center"/>
+                        <Button x:Name="BtnToggleSidebar" Grid.Column="1" Content="&lt;" Style="{StaticResource NavButtonStyle}" Width="36" HorizontalContentAlignment="Center"/>
                     </Grid>
 
                     <TextBlock Text="WORKFLOWS" Style="{StaticResource SectionLabelStyle}"/>
                     <Button x:Name="DiagnosticsBtn" Content="Run Diagnostics" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,0,10"/>
                     <Button x:Name="AutoFixBtn" Content="Scan + Recommended Fixes" Style="{StaticResource AccentButtonStyle}" Margin="0,0,0,10"/>
-                    <Button x:Name="FullAutoBtn" Content="Full Automation" Style="{StaticResource AccentButtonStyle}" Background="#8B5CF6" Foreground="#F8F5FF" Margin="0,0,0,14"/>
+                    <Button x:Name="FullAutoBtn" Content="Full Automation" Style="{StaticResource AccentButtonStyle}" Background="#5B4AB3" Foreground="#F8F5FF" Margin="0,0,0,14"/>
 
                     <TextBlock Text="AUTOMATION MODE" Style="{StaticResource SectionLabelStyle}"/>
                     <ComboBox x:Name="ModeSelector" Margin="0,0,0,6"/>
@@ -249,7 +344,7 @@ $xaml = @"
                                 <TextBlock Text="Run a full malware scan." Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="20,0,0,0"/>
                             </StackPanel>
                         </Border>
-                        <Button x:Name="RepairsBtn" Content="Run Selected Repairs" Style="{StaticResource PrimaryButtonStyle}" Background="#F97316" Foreground="#140800" Margin="0,12,0,0" IsEnabled="False"/>
+                        <Button x:Name="RepairsBtn" Content="Run Selected Repairs" Style="{StaticResource PrimaryButtonStyle}" Background="#B85C1B" Foreground="#FFF7ED" Margin="0,12,0,0" IsEnabled="False"/>
                     </StackPanel>
                 </ScrollViewer>
             </DockPanel>
@@ -708,10 +803,10 @@ function Toggle-Sidebar {
         if ($null -eq $col) { return }
         if ($col.Width.Value -gt 60) {
             $col.Width = New-Object System.Windows.GridLength(48)
-            if ($btnToggleSidebar) { $btnToggleSidebar.Content = '▶' }
+            if ($btnToggleSidebar) { $btnToggleSidebar.Content = '>' }
         } else {
             $col.Width = New-Object System.Windows.GridLength(286)
-            if ($btnToggleSidebar) { $btnToggleSidebar.Content = '◀' }
+            if ($btnToggleSidebar) { $btnToggleSidebar.Content = '<' }
         }
     } catch { }
 }
