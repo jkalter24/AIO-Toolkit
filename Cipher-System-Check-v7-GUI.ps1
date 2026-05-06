@@ -365,7 +365,7 @@ $xaml = @"
                         <TextBlock Text="Hardware, storage, Windows health, and repair recommendations in one place." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" Margin="0,5,0,0"/>
                         <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
                             <Border Background="#123049" CornerRadius="14" Padding="12,8" Margin="0,0,8,0">
-                                <TextBlock x:Name="StatusBlock" Text="Ready" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="StatusBlock" Text="Ready" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" MaxWidth="1180"/>
                             </Border>
                             <Border Background="#13251B" CornerRadius="14" Padding="12,8">
                                 <TextBlock x:Name="PhaseBlock" Text="Phase: idle" Foreground="#86EFAC" FontWeight="SemiBold"/>
@@ -728,6 +728,32 @@ function Stop-LiveTracking {
     if ($cancelCoreBtn) { $cancelCoreBtn.Visibility = 'Collapsed' }
 }
 
+function Clear-LiveRunFiles {
+    foreach ($path in @($ProgressSnapshotPath, $ProgressTextPath, (Join-Path $LogRoot 'results_incremental.json'))) {
+        if ($path) { Remove-Item -Path $path -Force -ErrorAction SilentlyContinue }
+    }
+}
+
+function Resolve-PowerShellHost {
+    $candidates = @()
+    if ($PSHOME) {
+        $candidates += (Join-Path $PSHOME 'powershell.exe')
+        $candidates += (Join-Path $PSHOME 'pwsh.exe')
+        $candidates += (Join-Path $PSHOME 'pwsh')
+    }
+    $commandName = if ($PSVersionTable.PSEdition -eq 'Core') { 'pwsh' } else { 'powershell.exe' }
+    $resolved = Get-Command $commandName -ErrorAction SilentlyContinue
+    if ($resolved) { $candidates += $resolved.Source }
+    $fallback = Get-Command powershell.exe -ErrorAction SilentlyContinue
+    if ($fallback) { $candidates += $fallback.Source }
+
+    foreach ($candidate in ($candidates | Where-Object { $_ } | Select-Object -Unique)) {
+        if (Test-Path $candidate) { return $candidate }
+    }
+
+    throw 'Unable to find powershell.exe or pwsh to launch the core diagnostics script.'
+}
+
 function Wait-ForCoreProcess {
     param([System.Diagnostics.Process]$Process)
 
@@ -750,13 +776,18 @@ function Start-CoreRun {
     $scriptPath = Join-Path $PSScriptRoot 'Cipher-System-Check-v7-Core.ps1'
     if (-not (Test-Path $scriptPath)) { throw "Core script not found at $scriptPath" }
 
-    $powershellExe = Join-Path $PSHOME 'powershell.exe'
+    Clear-LiveRunFiles
+    $powershellExe = Resolve-PowerShellHost
     $argumentList = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$scriptPath`"") + $Arguments
-    $script:CoreProcess = Start-Process -FilePath $powershellExe -ArgumentList $argumentList -WindowStyle Hidden -PassThru
-    Start-LiveTracking
-    Wait-ForCoreProcess -Process $script:CoreProcess
-    Stop-LiveTracking
-    return $script:CoreProcess.ExitCode
+
+    try {
+        $script:CoreProcess = Start-Process -FilePath $powershellExe -ArgumentList $argumentList -WindowStyle Hidden -PassThru -ErrorAction Stop
+        Start-LiveTracking
+        Wait-ForCoreProcess -Process $script:CoreProcess
+        return $script:CoreProcess.ExitCode
+    } finally {
+        Stop-LiveTracking
+    }
 }
 
 function Update-SystemInfo {
@@ -781,7 +812,11 @@ Uptime: $([math]::Round(((Get-Date) - $os.LastBootUpTime).TotalDays, 1))d
 function Set-Status {
     param([string]$Message, [double]$Progress = -1)
 
-    if ($statusBlock) { $statusBlock.Text = $Message }
+    $statusText = if ($null -ne $Message) { [string]$Message } else { '' }
+    if ($statusBlock) {
+        $statusBlock.ToolTip = $statusText
+        $statusBlock.Text = if ($statusText.Length -gt 220) { $statusText.Substring(0, 217) + '...' } else { $statusText }
+    }
     if ($Progress -ge 0 -and $Progress -le 100) {
         if ($progressBar) { $progressBar.Value = $Progress }
         if ($progressPercent) { $progressPercent.Text = ("{0:0.0}%" -f $Progress) }
