@@ -361,10 +361,54 @@ $xaml = @"
                         </Grid>
                     </TabItem>
 
-                    <TabItem Header="Hardware Errors"><DataGrid x:Name="WHEAGrid" Margin="0,14,0,0" AutoGenerateColumns="True"/></TabItem>
-                    <TabItem Header="GPU Timeouts"><DataGrid x:Name="TDRGrid" Margin="0,14,0,0" AutoGenerateColumns="True"/></TabItem>
-                    <TabItem Header="Reboots"><DataGrid x:Name="RebootGrid" Margin="0,14,0,0" AutoGenerateColumns="True"/></TabItem>
-                    <TabItem Header="Storage Timeouts"><DataGrid x:Name="StorageGrid" Margin="0,14,0,0" AutoGenerateColumns="True"/></TabItem>
+                    <TabItem Header="Hardware Errors">
+                        <Grid Margin="0,14,0,0">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                            <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="18" Padding="16" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Hardware Error Events" Foreground="{StaticResource TextPrimaryBrush}" FontSize="18" FontWeight="Bold"/>
+                                    <TextBlock x:Name="WheaEmptyBlock" Text="Run diagnostics to populate WHEA hardware error events. No rows means no matching WHEA events were found." Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <DataGrid x:Name="WHEAGrid" Grid.Row="1" AutoGenerateColumns="True"/>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="GPU Timeouts">
+                        <Grid Margin="0,14,0,0">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                            <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="18" Padding="16" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Graphics Timeout Events" Foreground="{StaticResource TextPrimaryBrush}" FontSize="18" FontWeight="Bold"/>
+                                    <TextBlock x:Name="TdrEmptyBlock" Text="Run diagnostics to populate GPU/TDR timeout events. No rows means no matching graphics timeout events were found." Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <DataGrid x:Name="TDRGrid" Grid.Row="1" AutoGenerateColumns="True"/>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Reboots">
+                        <Grid Margin="0,14,0,0">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                            <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="18" Padding="16" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Unexpected Reboot Events" Foreground="{StaticResource TextPrimaryBrush}" FontSize="18" FontWeight="Bold"/>
+                                    <TextBlock x:Name="RebootEmptyBlock" Text="Run diagnostics to populate unexpected shutdown and reboot events. No rows means none were found in the checked window." Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <DataGrid x:Name="RebootGrid" Grid.Row="1" AutoGenerateColumns="True"/>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Storage Timeouts">
+                        <Grid Margin="0,14,0,0">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                            <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="18" Padding="16" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Storage Timeout Events" Foreground="{StaticResource TextPrimaryBrush}" FontSize="18" FontWeight="Bold"/>
+                                    <TextBlock x:Name="StorageEmptyBlock" Text="Run diagnostics to populate disk/controller timeout events. No rows means no matching storage timeout events were found." Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <DataGrid x:Name="StorageGrid" Grid.Row="1" AutoGenerateColumns="True"/>
+                        </Grid>
+                    </TabItem>
                     <TabItem Header="Raw Log">
                         <TextBox x:Name="RawOutputBox" Margin="0,14,0,0" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True" Padding="14" FontFamily="Consolas" FontSize="11" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Text="Run diagnostics to load raw analysis output."/>
                     </TabItem>
@@ -430,6 +474,10 @@ $wheaGrid = $window.FindName('WHEAGrid')
 $tdrGrid = $window.FindName('TDRGrid')
 $rebootGrid = $window.FindName('RebootGrid')
 $storageGrid = $window.FindName('StorageGrid')
+$wheaEmptyBlock = $window.FindName('WheaEmptyBlock')
+$tdrEmptyBlock = $window.FindName('TdrEmptyBlock')
+$rebootEmptyBlock = $window.FindName('RebootEmptyBlock')
+$storageEmptyBlock = $window.FindName('StorageEmptyBlock')
 $rawOutputBox = $window.FindName('RawOutputBox')
 $mainGrid = $window.FindName('MainGrid')
 $btnToggleSidebar = $window.FindName('BtnToggleSidebar')
@@ -569,7 +617,7 @@ function Start-LiveTracking {
             if ($etaBlock) { $etaBlock.Text = "ETA: $($snapshot.EtaText)" }
             if ($liveViewBox) { $liveViewBox.Text = Format-LiveSnapshot -Snapshot $snapshot; $liveViewBox.ScrollToEnd() }
             $incrementalResults = Get-IncrementalResults
-            if ($incrementalResults -and $incrementalResults.SSDs) { Update-SsdHealthView -Items $incrementalResults.SSDs }
+            if ($incrementalResults) { Update-IncrementalResultsView -Results $incrementalResults }
         }
     })
     $script:LiveTimer.Start()
@@ -711,6 +759,42 @@ function New-ObjectCollection {
         [void]$collection.Add($item)
     }
     return $collection
+}
+
+function Set-ResultGridItems {
+    param(
+        $Grid,
+        $StatusBlock,
+        $Items,
+        [string]$FilledLabel,
+        [string]$EmptyLabel
+    )
+
+    $normalizedItems = Get-ResultItems $Items
+    if ($Grid) { $Grid.ItemsSource = New-ObjectCollection $normalizedItems }
+    if ($StatusBlock) {
+        $StatusBlock.Text = if ($normalizedItems.Count -gt 0) { "Detected $($normalizedItems.Count) $FilledLabel." } else { $EmptyLabel }
+    }
+    return $normalizedItems
+}
+
+function Update-IncrementalResultsView {
+    param($Results)
+
+    if (-not $Results) { return }
+    if ($Results.PSObject.Properties['SSDs']) { Update-SsdHealthView -Items $Results.SSDs }
+    if ($Results.PSObject.Properties['WHEAEvents']) {
+        Set-ResultGridItems -Grid $wheaGrid -StatusBlock $wheaEmptyBlock -Items $Results.WHEAEvents -FilledLabel 'hardware error event(s)' -EmptyLabel 'No WHEA hardware error events found so far.' | Out-Null
+    }
+    if ($Results.PSObject.Properties['TDREvents']) {
+        Set-ResultGridItems -Grid $tdrGrid -StatusBlock $tdrEmptyBlock -Items $Results.TDREvents -FilledLabel 'graphics timeout event(s)' -EmptyLabel 'No GPU/TDR timeout events found so far.' | Out-Null
+    }
+    if ($Results.PSObject.Properties['RebootEvents']) {
+        Set-ResultGridItems -Grid $rebootGrid -StatusBlock $rebootEmptyBlock -Items $Results.RebootEvents -FilledLabel 'unexpected reboot event(s)' -EmptyLabel 'No unexpected reboot events found so far.' | Out-Null
+    }
+    if ($Results.PSObject.Properties['StorageTimeouts']) {
+        Set-ResultGridItems -Grid $storageGrid -StatusBlock $storageEmptyBlock -Items $Results.StorageTimeouts -FilledLabel 'storage timeout event(s)' -EmptyLabel 'No storage timeout events found so far.' | Out-Null
+    }
 }
 
 function Get-NumericMetric {
@@ -900,10 +984,10 @@ Open the SSD Health tab for per-drive cards and detailed reliability counters.
     }
 
     Update-SsdHealthView -Items $ssdItems
-    if ($wheaGrid) { $wheaGrid.ItemsSource = New-ObjectCollection $wheaItems }
-    if ($tdrGrid) { $tdrGrid.ItemsSource = New-ObjectCollection $tdrItems }
-    if ($rebootGrid) { $rebootGrid.ItemsSource = New-ObjectCollection $rebootItems }
-    if ($storageGrid) { $storageGrid.ItemsSource = New-ObjectCollection $storageItems }
+    Set-ResultGridItems -Grid $wheaGrid -StatusBlock $wheaEmptyBlock -Items $wheaItems -FilledLabel 'hardware error event(s)' -EmptyLabel 'No WHEA hardware error events were found in the checked event window.' | Out-Null
+    Set-ResultGridItems -Grid $tdrGrid -StatusBlock $tdrEmptyBlock -Items $tdrItems -FilledLabel 'graphics timeout event(s)' -EmptyLabel 'No GPU/TDR timeout events were found in the checked event window.' | Out-Null
+    Set-ResultGridItems -Grid $rebootGrid -StatusBlock $rebootEmptyBlock -Items $rebootItems -FilledLabel 'unexpected reboot event(s)' -EmptyLabel 'No unexpected shutdown or reboot events were found in the checked event window.' | Out-Null
+    Set-ResultGridItems -Grid $storageGrid -StatusBlock $storageEmptyBlock -Items $storageItems -FilledLabel 'storage timeout event(s)' -EmptyLabel 'No disk/controller timeout events were found in the checked event window.' | Out-Null
 }
 
 function Show-Results {
@@ -1119,6 +1203,10 @@ $window.Add_Loaded({
         if ($phaseBlock) { $phaseBlock.Text = 'Phase: idle' }
         if ($etaBlock) { $etaBlock.Text = 'ETA: Not started' }
         Update-SsdHealthView -Items @()
+        Set-ResultGridItems -Grid $wheaGrid -StatusBlock $wheaEmptyBlock -Items @() -FilledLabel 'hardware error event(s)' -EmptyLabel 'Run diagnostics to populate WHEA hardware error events.' | Out-Null
+        Set-ResultGridItems -Grid $tdrGrid -StatusBlock $tdrEmptyBlock -Items @() -FilledLabel 'graphics timeout event(s)' -EmptyLabel 'Run diagnostics to populate GPU/TDR timeout events.' | Out-Null
+        Set-ResultGridItems -Grid $rebootGrid -StatusBlock $rebootEmptyBlock -Items @() -FilledLabel 'unexpected reboot event(s)' -EmptyLabel 'Run diagnostics to populate unexpected shutdown and reboot events.' | Out-Null
+        Set-ResultGridItems -Grid $storageGrid -StatusBlock $storageEmptyBlock -Items @() -FilledLabel 'storage timeout event(s)' -EmptyLabel 'Run diagnostics to populate disk/controller timeout events.' | Out-Null
         Select-ResultsTab 0
     } catch {
         Set-Status "ERROR during initialization: $_"
