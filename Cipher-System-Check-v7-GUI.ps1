@@ -27,7 +27,367 @@ Add-Type -AssemblyName PresentationCore, PresentationFramework, WindowsBase
 
 #region XAML Definition
 $xaml = @"
-<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Cipher System Check v7" Width="1200" Height="800" WindowStartupLocation="CenterScreen" Background="#0B0D10" FontFamily="Segoe UI" FontSize="11" Foreground="#EAECEF"> <Window.Resources> <LinearGradientBrush x:Key="AppBackgroundBrush" StartPoint="0,0" EndPoint="1,1"> <GradientStop Color="#0B0D10" Offset="0"/> <GradientStop Color="#10131A" Offset="0.45"/> <GradientStop Color="#0B0D10" Offset="1"/> </LinearGradientBrush> <SolidColorBrush x:Key="SurfaceBrush" Color="#141923"/> <SolidColorBrush x:Key="SurfaceAltBrush" Color="#171D27"/> <SolidColorBrush x:Key="SurfaceBorderBrush" Color="#283040"/> <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F2F5F8"/> <SolidColorBrush x:Key="TextSecondaryBrush" Color="#9AA4B2"/> <SolidColorBrush x:Key="AccentBrush" Color="#4DA3FF"/> <SolidColorBrush x:Key="AccentSoftBrush" Color="#183A5A"/> <Style TargetType="ScrollBar"> <Setter Property="Background" Value="#0F131A"/> <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/> <Setter Property="Width" Value="12"/> <Setter Property="MinWidth" Value="12"/> <Setter Property="Height" Value="12"/> <Setter Property="Template"> <Setter.Value> <ControlTemplate TargetType="ScrollBar"> <Grid x:Name="Root" Background="Transparent" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}"> <Border Background="#0F131A" CornerRadius="6" BorderBrush="#1F2530" BorderThickness="1"/> <Track x:Name="PART_Track" IsDirectionReversed="True" Orientation="{TemplateBinding Orientation}"> <Track.DecreaseRepeatButton> <RepeatButton Command="ScrollBar.LineUpCommand" Opacity="0" IsTabStop="False" Focusable="False"/> </Track.DecreaseRepeatButton> <Track.Thumb> <Thumb Background="{TemplateBinding Foreground}" Margin="2"/> </Track.Thumb> <Track.IncreaseRepeatButton> <RepeatButton Command="ScrollBar.LineDownCommand" Opacity="0" IsTabStop="False" Focusable="False"/> </Track.IncreaseRepeatButton> </Track> </Grid> </ControlTemplate> </Setter.Value> </Setter> </Style> <Style x:Key="PrimaryButtonStyle" TargetType="Button"> <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/> <Setter Property="Background" Value="{StaticResource AccentBrush}"/> <Setter Property="BorderBrush" Value="#184A87"/> <Setter Property="BorderThickness" Value="0"/> <Setter Property="Padding" Value="14,9"/> <Setter Property="Height" Value="40"/> <Setter Property="Cursor" Value="Hand"/> <Setter Property="FontWeight" Value="SemiBold"/> <Setter Property="Template"> <Setter.Value> <ControlTemplate TargetType="Button"> <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="12" Padding="{TemplateBinding Padding}"> <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/> </Border> <ControlTemplate.Triggers> <Trigger Property="IsMouseOver" Value="True"> <Setter TargetName="Bd" Property="Opacity" Value="0.95"/> </Trigger> <Trigger Property="IsPressed" Value="True"> <Setter TargetName="Bd" Property="Opacity" Value="0.84"/> </Trigger> <Trigger Property="IsEnabled" Value="False"> <Setter TargetName="Bd" Property="Opacity" Value="0.55"/> </Trigger> </ControlTemplate.Triggers> </ControlTemplate> </Setter.Value> </Setter> </Style> <Style x:Key="AccentButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}"> <Setter Property="Background" Value="#2D8A57"/> <Setter Property="BorderBrush" Value="#1C5D37"/> </Style> <Style x:Key="NavButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}"> <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/> <Setter Property="BorderBrush" Value="{StaticResource SurfaceBorderBrush}"/> <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/> <Setter Property="Height" Value="34"/> <Setter Property="HorizontalContentAlignment" Value="Left"/> <Setter Property="Padding" Value="12,6"/> <Setter Property="Margin" Value="0,0,0,6"/> <Setter Property="FontWeight" Value="Normal"/> </Style> <Style x:Key="StatCardStyle" TargetType="Border"> <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/> <Setter Property="BorderBrush" Value="{StaticResource SurfaceBorderBrush}"/> <Setter Property="BorderThickness" Value="1"/> <Setter Property="CornerRadius" Value="14"/> <Setter Property="Padding" Value="12"/> <Setter Property="Margin" Value="0,0,10,10"/> </Style> <Style TargetType="TabItem"> <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/> <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/> <Setter Property="Padding" Value="12,7"/> <Setter Property="Margin" Value="0,0,6,0"/> <Setter Property="Template"> <Setter.Value> <ControlTemplate TargetType="TabItem"> <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="10,10,0,0" BorderBrush="{StaticResource SurfaceBorderBrush}" BorderThickness="1,1,1,0" Padding="{TemplateBinding Padding}"> <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center"/> </Border> <ControlTemplate.Triggers> <Trigger Property="IsSelected" Value="True"> <Setter TargetName="Bd" Property="Background" Value="#1B2230"/> <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/> </Trigger> <Trigger Property="IsMouseOver" Value="True"> <Setter TargetName="Bd" Property="Background" Value="#1D2533"/> </Trigger> </ControlTemplate.Triggers> </ControlTemplate> </Setter.Value> </Setter> </Style> <Style TargetType="DataGrid"> <Setter Property="Background" Value="#10141A"/> <Setter Property="Foreground" Value="#EAECEF"/> <Setter Property="RowBackground" Value="#141A23"/> <Setter Property="AlternatingRowBackground" Value="#11161D"/> <Setter Property="BorderBrush" Value="{StaticResource SurfaceBorderBrush}"/> <Setter Property="GridLinesVisibility" Value="Horizontal"/> <Setter Property="HeadersVisibility" Value="Column"/> </Style> <Style TargetType="ComboBox"> <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/> <Setter Property="Foreground" Value="#EAECEF"/> <Setter Property="BorderBrush" Value="{StaticResource SurfaceBorderBrush}"/> <Setter Property="Padding" Value="8,4"/> <Setter Property="Height" Value="30"/> <Setter Property="Template"> <Setter.Value> <ControlTemplate TargetType="ComboBox"> <Grid SnapsToDevicePixels="True"> <Border x:Name="OuterBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="10"> <Grid> <ToggleButton x:Name="ToggleButton" Focusable="False" IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" ClickMode="Press" Background="Transparent" BorderThickness="0"> <Grid> <Grid.ColumnDefinitions> <ColumnDefinition Width="*"/> <ColumnDefinition Width="28"/> </Grid.ColumnDefinitions> <ContentPresenter Grid.Column="0" Margin="8,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" RecognizesAccessKey="True" TextElement.Foreground="{TemplateBinding Foreground}"/> <TextBlock Grid.Column="1" Text="v" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/> </Grid> </ToggleButton> <Popup x:Name="Popup" Placement="Bottom" AllowsTransparency="True" Focusable="False" IsOpen="{TemplateBinding IsDropDownOpen}" PopupAnimation="Fade" PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"> <Border Background="#131823" BorderBrush="{StaticResource SurfaceBorderBrush}" BorderThickness="1" CornerRadius="10" MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"> <ScrollViewer Margin="0" SnapsToDevicePixels="True"> <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/> </ScrollViewer> </Border> </Popup> </Grid> </Border> </Grid> </ControlTemplate> </Setter.Value> </Setter> </Style> <Style TargetType="ComboBoxItem"> <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/> <Setter Property="Foreground" Value="#EAECEF"/> <Setter Property="Padding" Value="8,6"/> <Setter Property="HorizontalContentAlignment" Value="Left"/> <Style.Triggers> <Trigger Property="IsMouseOver" Value="True"> <Setter Property="Background" Value="#202632"/> </Trigger> <Trigger Property="IsSelected" Value="True"> <Setter Property="Background" Value="#243348"/> <Setter Property="Foreground" Value="#FFFFFF"/> </Trigger> </Style.Triggers> </Style> </Window.Resources> <Grid x:Name="MainGrid"> <Grid.Background> <StaticResource ResourceKey="AppBackgroundBrush"/> </Grid.Background> <Grid.RowDefinitions> <RowDefinition Height="auto"/> <RowDefinition Height="*"/> <RowDefinition Height="auto"/> </Grid.RowDefinitions> <!-- HEADER --> <StackPanel Grid.Row="0" Margin="18,18,18,0"> <Border Background="{StaticResource SurfaceBrush}" CornerRadius="18" Padding="18" BorderBrush="{StaticResource SurfaceBorderBrush}" BorderThickness="1"> <Grid> <Grid.ColumnDefinitions> <ColumnDefinition Width="6"/> <ColumnDefinition Width="*"/> <ColumnDefinition Width="48"/> </Grid.ColumnDefinitions> <Border Grid.Column="0" Background="{StaticResource AccentBrush}" CornerRadius="3" Margin="0,2,14,2"/> <StackPanel Grid.Column="1"> <TextBlock Text="Cipher System Check v7" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/> <TextBlock Text="Dark diagnostics with clear steps, live progress, and safe fixes" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="0,5,0,0"/> </StackPanel> <StackPanel Grid.Column="2" HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Top" Margin="8,0,0,0"> <ToggleButton x:Name="BtnToggleSidebar" Width="36" Height="28" Margin="6,0,0,0" ToolTip="Toggle sidebar"> <TextBlock Text="◀" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/> </ToggleButton> <Button x:Name="HelpBtn" Width="28" Height="28" Margin="6,0,0,0" ToolTip="Glossary and quick help">?</Button> </StackPanel> </Grid> </Border> </StackPanel> <!-- MAIN CONTENT --> <Grid Grid.Row="1" Margin="10"> <Grid.ColumnDefinitions> <ColumnDefinition Width="286" x:Name="LeftCol"/> <ColumnDefinition Width="*"/> </Grid.ColumnDefinitions> <!-- LEFT PANEL: CONTROLS --> <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,0,10,0" CanContentScroll="False"> <StackPanel VerticalAlignment="Top"> <TextBlock Text="System Overview" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,8" Foreground="{StaticResource TextPrimaryBrush}"/> <Border Style="{StaticResource StatCardStyle}" Margin="0,0,0,8"> <StackPanel> <TextBlock Text="Current system state" Foreground="{StaticResource TextSecondaryBrush}" FontSize="9" Margin="0,0,0,6"/> <TextBlock x:Name="SysInfoBlock" Text="Loading..." FontSize="10" LineHeight="18" Foreground="#D7DCE4"/> </StackPanel> </Border> <TextBlock Text="Quick Summary" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,8" Foreground="{StaticResource TextPrimaryBrush}"/> <Border Style="{StaticResource StatCardStyle}" Margin="0,0,0,8"> <StackPanel> <TextBlock Text="Latest scan" Foreground="{StaticResource TextSecondaryBrush}" FontSize="9"/> <TextBlock x:Name="QuickSummaryBlock" Text="Click 'Start Scan' to run a safe system check and populate results." TextWrapping="Wrap" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,6,0,0"/> </StackPanel> </Border> <TextBlock Text="Scan Options" FontWeight="SemiBold" FontSize="12" Margin="0,12,0,8" Foreground="{StaticResource TextPrimaryBrush}"/> <TextBlock Text="Automation Mode" Foreground="{StaticResource TextSecondaryBrush}" FontSize="9" Margin="0,0,0,4"/> <ComboBox x:Name="ModeSelector" SelectedIndex="1" Margin="0,0,0,8" Height="30" Background="{StaticResource SurfaceBrush}" Foreground="#EAECEF" BorderBrush="{StaticResource SurfaceBorderBrush}"> </ComboBox> <CheckBox x:Name="AdvancedLiveCheck" Content="Detailed live log (advanced)" Margin="0,0,0,8" Foreground="{StaticResource TextPrimaryBrush}" IsChecked="True"/> <Border x:Name="LiveViewBorder" Style="{StaticResource StatCardStyle}" Margin="0,0,0,8"> <StackPanel> <TextBlock Text="Live Activity" Foreground="{StaticResource TextSecondaryBrush}" FontSize="9"/> <TextBox x:Name="LiveViewBox" Text="Waiting for the first scan..." TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True" Background="#0F131A" Foreground="#EAECEF" BorderThickness="0" FontFamily="Consolas" FontSize="9" Height="120" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,6,0,0"/> </StackPanel> </Border> <Button x:Name="DiagnosticsBtn" Content="Start Scan" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,0,6" ToolTip="Performs a safe system check and collects logs"/> <Button x:Name="AutoFixBtn" Content="Auto Scan + Recommended Fixes" Style="{StaticResource AccentButtonStyle}" Margin="0,0,0,6" Height="36" Foreground="White" ToolTip="Apply recommended, low-risk fixes automatically"/> <Button x:Name="FullAutoBtn" Content="Full Automated Maintenance" Style="{StaticResource AccentButtonStyle}" Margin="0,0,0,6" Height="36" Foreground="White" ToolTip="Run extended maintenance including updates and full scans"/> <Button x:Name="OpenLogsBtn" Content="Open Log Folder" Style="{StaticResource AccentButtonStyle}" Margin="0,0,0,6" Height="36" Foreground="White"/> <Button x:Name="CopySummaryBtn" Content="Copy Summary" Style="{StaticResource NavButtonStyle}"/> <TextBlock Text="Jump to results" FontWeight="SemiBold" FontSize="12" Margin="0,12,0,8" Foreground="{StaticResource TextPrimaryBrush}"/> <Border Style="{StaticResource StatCardStyle}" Margin="0,0,0,8"> <StackPanel> <Button x:Name="NavOverviewBtn" Style="{StaticResource NavButtonStyle}" ToolTip="High-level summary of findings"> <StackPanel Orientation="Horizontal"><TextBlock Text="Overview"/></StackPanel> </Button> <Button x:Name="NavSSDBtn" Style="{StaticResource NavButtonStyle}" ToolTip="Health and wear of storage devices"> <StackPanel Orientation="Horizontal"><TextBlock Text="SSD Health"/></StackPanel> </Button> <Button x:Name="NavWHEABtn" Style="{StaticResource NavButtonStyle}" ToolTip="Hardware error events (kernel-level hardware reports)"> <StackPanel Orientation="Horizontal"><TextBlock Text="Hardware Errors"/></StackPanel> </Button> <Button x:Name="NavTdrBtn" Style="{StaticResource NavButtonStyle}" ToolTip="Graphics/timeouts and driver crash evidence"> <StackPanel Orientation="Horizontal"><TextBlock Text="Graphics Timeouts"/></StackPanel> </Button> <Button x:Name="NavRebootBtn" Style="{StaticResource NavButtonStyle}" ToolTip="Unexpected restarts and crash records"> <StackPanel Orientation="Horizontal"><TextBlock Text="Restarts &amp; Crashes"/></StackPanel> </Button> <Button x:Name="NavStorageBtn" Style="{StaticResource NavButtonStyle}" ToolTip="Timeouts and controller errors for storage"> <StackPanel Orientation="Horizontal"><TextBlock Text="Storage Timeouts"/></StackPanel> </Button> <Button x:Name="NavRawBtn" Style="{StaticResource NavButtonStyle}" Margin="0" ToolTip="Open the detailed text log"> <StackPanel Orientation="Horizontal"><TextBlock Text="Detailed Log"/></StackPanel> </Button> </StackPanel> </Border> <TextBlock Text="Repair Options" FontWeight="SemiBold" FontSize="12" Margin="0,12,0,8" Foreground="{StaticResource TextPrimaryBrush}"/> <Border Style="{StaticResource StatCardStyle}"> <StackPanel> <CheckBox x:Name="ChkWindowsRepair" Content="Windows Repair" Margin="0,5" Foreground="{StaticResource TextPrimaryBrush}"/> <TextBlock Text="Reset update cache, fix component store" FontSize="9" Foreground="{StaticResource TextSecondaryBrush}" Margin="20,0,0,8"/> <CheckBox x:Name="ChkTdrTweak" Content="GPU Driver Adjustment" Margin="0,5" Foreground="{StaticResource TextPrimaryBrush}"/> <TextBlock Text="Increase TDR delay for timeout issues" FontSize="9" Foreground="{StaticResource TextSecondaryBrush}" Margin="20,0,0,8"/> <CheckBox x:Name="ChkNetReset" Content="Network Reset" Margin="0,5" Foreground="{StaticResource TextPrimaryBrush}"/> <TextBlock Text="Reset TCP/IP stack and Winsock" FontSize="9" Foreground="{StaticResource TextSecondaryBrush}" Margin="20,0,0,8"/> <CheckBox x:Name="ChkMemDiag" Content="Memory Diagnostics" Margin="0,5" Foreground="{StaticResource TextPrimaryBrush}"/> <TextBlock Text="Launch Windows Memory Diagnostic" FontSize="9" Foreground="{StaticResource TextSecondaryBrush}" Margin="20,0,0,8"/> <CheckBox x:Name="ChkDefenderScan" Content="Full Defender Scan" Margin="0,5" Foreground="{StaticResource TextPrimaryBrush}"/> <TextBlock Text="Comprehensive malware scan" FontSize="9" Foreground="{StaticResource TextSecondaryBrush}" Margin="20,0,0,0"/> </StackPanel> </Border> <Button x:Name="RepairsBtn" Content="Selected Repairs" Style="{StaticResource PrimaryButtonStyle}" Margin="0,12,0,0" Background="#C94B20" BorderBrush="#8F3315" IsEnabled="False"/> </StackPanel> </ScrollViewer> <!-- RIGHT PANEL: RESULTS --> <Grid Grid.Column="1"> <Grid.RowDefinitions> <RowDefinition Height="auto"/> <RowDefinition Height="auto"/> <RowDefinition Height="*"/> </Grid.RowDefinitions> <WrapPanel Grid.Row="0" Margin="0,0,0,8"> <Border Style="{StaticResource StatCardStyle}" Width="188" Height="92"> <StackPanel> <TextBlock Text="Top Issue" Foreground="{StaticResource TextSecondaryBrush}" FontSize="9"/> <TextBlock x:Name="TopIssueCardText" Text="Awaiting scan" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16" FontWeight="Bold" Margin="0,6,0,0" TextWrapping="Wrap"/> </StackPanel> </Border> <Border Style="{StaticResource StatCardStyle}" Width="188" Height="92"> <StackPanel> <TextBlock Text="Findings" Foreground="{StaticResource TextSecondaryBrush}" FontSize="9"/> <TextBlock x:Name="FindingsCardText" Text="0 total" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16" FontWeight="Bold" Margin="0,6,0,0"/> </StackPanel> </Border> <Border Style="{StaticResource StatCardStyle}" Width="188" Height="92"> <StackPanel> <TextBlock Text="Health State" Foreground="{StaticResource TextSecondaryBrush}" FontSize="9"/> <TextBlock x:Name="HealthCardText" Text="Idle" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16" FontWeight="Bold" Margin="0,6,0,0"/> </StackPanel> </Border> <Border Style="{StaticResource StatCardStyle}" Width="188" Height="92" Margin="0,0,0,8"> <StackPanel> <TextBlock Text="Last Scan" Foreground="{StaticResource TextSecondaryBrush}" FontSize="9"/> <TextBlock x:Name="LastRunCardText" Text="Not scanned yet" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16" FontWeight="Bold" Margin="0,6,0,0" TextWrapping="Wrap"/> </StackPanel> </Border> </WrapPanel> <TextBlock Grid.Row="1" Text="Diagnostic Results" FontWeight="SemiBold" FontSize="12" Margin="0,0,0,8" Foreground="{StaticResource TextPrimaryBrush}"/> <TabControl x:Name="ResultsTabs" Grid.Row="2" Background="#10141A" BorderBrush="{StaticResource SurfaceBorderBrush}" BorderThickness="1"> <TabItem Header="Overview"> <TextBlock x:Name="ResultsOverviewBlock" Text="Start a scan to see results..." Padding="15" TextWrapping="Wrap" FontSize="10" Foreground="#D7DCE4" VerticalAlignment="Top"/> </TabItem> <TabItem Header="SSD Health"> <DataGrid x:Name="SSDHealthGrid" AutoGenerateColumns="True" CanUserAddRows="False" Padding="15" IsReadOnly="True" BorderThickness="0"/> </TabItem> <TabItem Header="WHEA Errors"> <DataGrid x:Name="WHEAGrid" AutoGenerateColumns="True" CanUserAddRows="False" Padding="15" IsReadOnly="True" BorderThickness="0"/> </TabItem> <TabItem Header="GPU TDR Events"> <DataGrid x:Name="TDRGrid" AutoGenerateColumns="True" CanUserAddRows="False" Padding="15" IsReadOnly="True" BorderThickness="0"/> </TabItem> <TabItem Header="Reboot Events"> <DataGrid x:Name="RebootGrid" AutoGenerateColumns="True" CanUserAddRows="False" Padding="15" IsReadOnly="True" BorderThickness="0"/> </TabItem> <TabItem Header="Storage Timeouts"> <DataGrid x:Name="StorageGrid" AutoGenerateColumns="True" CanUserAddRows="False" Padding="15" IsReadOnly="True" BorderThickness="0"/> </TabItem> <TabItem Header="Raw Output"> <TextBox x:Name="RawOutputBox" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True" Background="#11141A" Foreground="#EAECEF" Padding="15" FontFamily="Consolas" FontSize="9" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/> </TabItem> </TabControl> </Grid> </Grid> <!-- FOOTER / PROGRESS --> <Border Grid.Row="2" Background="#0F1318" BorderBrush="{StaticResource SurfaceBorderBrush}" BorderThickness="1,1,0,0" Padding="10"> <StackPanel> <Grid Margin="0,0,0,6"> <Grid.ColumnDefinitions> <ColumnDefinition Width="*"/> <ColumnDefinition Width="88"/> </Grid.ColumnDefinitions> <Border Grid.Column="0" CornerRadius="3" Background="#1A1F28" Margin="0,0,12,0" Height="14"> <ProgressBar x:Name="ProgressBar" Height="14" Foreground="{StaticResource AccentBrush}" Background="Transparent" Margin="0" VerticalAlignment="Stretch" Minimum="0" Maximum="100" Value="0"/> </Border> <TextBlock x:Name="ProgressPercent" Text="0%" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Column="1"/> </Grid> <TextBlock x:Name="StatusBlock" Text="Ready" Foreground="{StaticResource TextPrimaryBrush}" FontSize="10"/> <StackPanel Orientation="Horizontal" Margin="0,4,0,0"> <TextBlock x:Name="PhaseBlock" Text="Phase: idle" Foreground="{StaticResource TextSecondaryBrush}" FontSize="9" Margin="0,0,12,0"/> <TextBlock x:Name="EtaBlock" Text="ETA: Not started" Foreground="{StaticResource TextSecondaryBrush}" FontSize="9"/> </StackPanel> <StackPanel Orientation="Horizontal" Margin="0,6,0,0"> <Button x:Name="CancelCoreBtn" Content="Cancel Scan" Visibility="Collapsed" Style="{StaticResource NavButtonStyle}" Width="140"/> </StackPanel> </StackPanel> </Border> </Grid> </Window>
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Cipher System Check v7"
+        Width="1320"
+        Height="860"
+        MinWidth="1100"
+        MinHeight="720"
+        WindowStartupLocation="CenterScreen"
+        Background="#0B0F14"
+        FontFamily="Segoe UI"
+        FontSize="12"
+        Foreground="#EAF0F7">
+    <Window.Resources>
+        <LinearGradientBrush x:Key="AppBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#080B10" Offset="0"/>
+            <GradientStop Color="#0D1320" Offset="0.55"/>
+            <GradientStop Color="#091118" Offset="1"/>
+        </LinearGradientBrush>
+        <SolidColorBrush x:Key="PanelBrush" Color="#101722"/>
+        <SolidColorBrush x:Key="PanelAltBrush" Color="#131D2B"/>
+        <SolidColorBrush x:Key="PanelRaisedBrush" Color="#172233"/>
+        <SolidColorBrush x:Key="BorderBrushSoft" Color="#263549"/>
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F4F8FC"/>
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#A8B4C4"/>
+        <SolidColorBrush x:Key="TextMutedBrush" Color="#718096"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#38BDF8"/>
+        <SolidColorBrush x:Key="AccentGreenBrush" Color="#22C55E"/>
+        <SolidColorBrush x:Key="AccentAmberBrush" Color="#F59E0B"/>
+        <SolidColorBrush x:Key="DangerBrush" Color="#EF4444"/>
+
+        <Style x:Key="SectionLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,16,0,8"/>
+        </Style>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="#06121C"/>
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="#075985"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Opacity" Value="0.92"/></Trigger>
+                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="Bd" Property="Opacity" Value="0.78"/></Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Bd" Property="Opacity" Value="0.45"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="AccentButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+            <Setter Property="Background" Value="{StaticResource AccentGreenBrush}"/>
+            <Setter Property="Foreground" Value="#04130A"/>
+        </Style>
+
+        <Style x:Key="NavButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="12,7"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+        </Style>
+
+        <Style x:Key="StatCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Margin" Value="0,0,12,12"/>
+        </Style>
+
+        <Style TargetType="TabControl">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style TargetType="TabItem">
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Background" Value="#101722"/>
+            <Setter Property="Padding" Value="14,9"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="10" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#123049"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Background" Value="#182538"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="#0F1722"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="RowBackground" Value="#111B29"/>
+            <Setter Property="AlternatingRowBackground" Value="#0D1520"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#223044"/>
+            <Setter Property="VerticalGridLinesBrush" Value="#223044"/>
+            <Setter Property="RowHeaderWidth" Value="0"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="AutoGenerateColumns" Value="True"/>
+        </Style>
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#172235"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/>
+        </Style>
+        <Style TargetType="DataGridCell">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#0F1722"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/>
+            <Setter Property="CaretBrush" Value="{StaticResource AccentBrush}"/>
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Margin" Value="0,5,0,4"/>
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#111827"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}"/>
+            <Setter Property="Height" Value="34"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource AppBackgroundBrush}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="LeftCol" Width="298"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Background="#0B111A" BorderBrush="#1D2A3D" BorderThickness="0,0,1,0" Padding="20">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Top">
+                    <Grid Margin="0,0,0,18">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Cipher" Foreground="{StaticResource TextPrimaryBrush}" FontSize="26" FontWeight="Bold"/>
+                            <TextBlock Text="System Check v7" Foreground="{StaticResource AccentBrush}" FontSize="13" FontWeight="SemiBold"/>
+                        </StackPanel>
+                        <Button x:Name="BtnToggleSidebar" Grid.Column="1" Content="◀" Style="{StaticResource NavButtonStyle}" Width="36" HorizontalContentAlignment="Center"/>
+                    </Grid>
+
+                    <TextBlock Text="WORKFLOWS" Style="{StaticResource SectionLabelStyle}"/>
+                    <Button x:Name="DiagnosticsBtn" Content="Run Diagnostics" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,0,10"/>
+                    <Button x:Name="AutoFixBtn" Content="Scan + Recommended Fixes" Style="{StaticResource AccentButtonStyle}" Margin="0,0,0,10"/>
+                    <Button x:Name="FullAutoBtn" Content="Full Automation" Style="{StaticResource AccentButtonStyle}" Background="#8B5CF6" Foreground="#F8F5FF" Margin="0,0,0,14"/>
+
+                    <TextBlock Text="AUTOMATION MODE" Style="{StaticResource SectionLabelStyle}"/>
+                    <ComboBox x:Name="ModeSelector" Margin="0,0,0,6"/>
+                    <TextBlock Text="Safe is conservative. Balanced is recommended. Deep includes memory diagnostics when hardware errors are present." TextWrapping="Wrap" Foreground="{StaticResource TextMutedBrush}" FontSize="11"/>
+
+                    <TextBlock Text="NAVIGATION" Style="{StaticResource SectionLabelStyle}"/>
+                    <Button x:Name="NavOverviewBtn" Content="Overview" Style="{StaticResource NavButtonStyle}"/>
+                    <Button x:Name="NavSSDBtn" Content="SSD Health" Style="{StaticResource NavButtonStyle}"/>
+                    <Button x:Name="NavWHEABtn" Content="Hardware Errors" Style="{StaticResource NavButtonStyle}"/>
+                    <Button x:Name="NavTdrBtn" Content="Graphics Timeouts" Style="{StaticResource NavButtonStyle}"/>
+                    <Button x:Name="NavRebootBtn" Content="Reboots" Style="{StaticResource NavButtonStyle}"/>
+                    <Button x:Name="NavStorageBtn" Content="Storage Timeouts" Style="{StaticResource NavButtonStyle}"/>
+                    <Button x:Name="NavRawBtn" Content="Raw Log" Style="{StaticResource NavButtonStyle}"/>
+                </StackPanel>
+
+                <ScrollViewer DockPanel.Dock="Bottom" VerticalScrollBarVisibility="Auto" Margin="0,12,0,0">
+                    <StackPanel>
+                        <TextBlock Text="QUICK SUMMARY" Style="{StaticResource SectionLabelStyle}"/>
+                        <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="14" Padding="14" Margin="0,0,0,10">
+                            <TextBlock x:Name="QuickSummaryBlock" Text="Start a scan to generate a summary." Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                        </Border>
+                        <Button x:Name="CopySummaryBtn" Content="Copy Summary" Style="{StaticResource NavButtonStyle}"/>
+                        <Button x:Name="OpenLogsBtn" Content="Open Logs" Style="{StaticResource NavButtonStyle}"/>
+                        <Button x:Name="HelpBtn" Content="Help / Glossary" Style="{StaticResource NavButtonStyle}"/>
+
+                        <TextBlock Text="MANUAL REPAIRS" Style="{StaticResource SectionLabelStyle}"/>
+                        <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="14" Padding="14">
+                            <StackPanel>
+                                <CheckBox x:Name="ChkWindowsRepair" Content="Windows Repair"/>
+                                <TextBlock Text="Reset update services and repair component store." Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="20,0,0,8"/>
+                                <CheckBox x:Name="ChkTdrTweak" Content="GPU TDR Tweak"/>
+                                <TextBlock Text="Increase GPU timeout tolerance." Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="20,0,0,8"/>
+                                <CheckBox x:Name="ChkNetReset" Content="Network Reset"/>
+                                <TextBlock Text="Reset TCP/IP and Winsock." Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="20,0,0,8"/>
+                                <CheckBox x:Name="ChkMemDiag" Content="Memory Diagnostics"/>
+                                <TextBlock Text="Launch Windows Memory Diagnostic." Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="20,0,0,8"/>
+                                <CheckBox x:Name="ChkDefenderScan" Content="Full Defender Scan"/>
+                                <TextBlock Text="Run a full malware scan." Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="20,0,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Button x:Name="RepairsBtn" Content="Run Selected Repairs" Style="{StaticResource PrimaryButtonStyle}" Background="#F97316" Foreground="#140800" Margin="0,12,0,0" IsEnabled="False"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <Grid x:Name="MainGrid" Grid.Column="1" Margin="22">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="20" Padding="22" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="320"/></Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="Diagnostics Dashboard" Foreground="{StaticResource TextPrimaryBrush}" FontSize="28" FontWeight="Bold"/>
+                        <TextBlock Text="Hardware, storage, Windows health, and repair recommendations in one place." Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" Margin="0,5,0,0"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                            <Border Background="#123049" CornerRadius="14" Padding="12,8" Margin="0,0,8,0">
+                                <TextBlock x:Name="StatusBlock" Text="Ready" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                            </Border>
+                            <Border Background="#13251B" CornerRadius="14" Padding="12,8">
+                                <TextBlock x:Name="PhaseBlock" Text="Phase: idle" Foreground="#86EFAC" FontWeight="SemiBold"/>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+                    <TextBlock x:Name="SysInfoBlock" Grid.Column="1" Text="Loading system info..." Foreground="{StaticResource TextSecondaryBrush}" FontFamily="Consolas" FontSize="11" TextWrapping="Wrap" HorizontalAlignment="Right"/>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <WrapPanel Grid.Row="0" Margin="0,0,0,8">
+                    <Border Style="{StaticResource StatCardStyle}" Width="215" Height="104">
+                        <StackPanel>
+                            <TextBlock Text="Top Issue" Foreground="{StaticResource TextMutedBrush}" FontSize="11" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="TopIssueCardText" Text="Awaiting scan" Foreground="{StaticResource TextPrimaryBrush}" FontSize="18" FontWeight="Bold" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource StatCardStyle}" Width="170" Height="104">
+                        <StackPanel>
+                            <TextBlock Text="Findings" Foreground="{StaticResource TextMutedBrush}" FontSize="11" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="FindingsCardText" Text="0 total" Foreground="{StaticResource TextPrimaryBrush}" FontSize="26" FontWeight="Bold" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource StatCardStyle}" Width="170" Height="104">
+                        <StackPanel>
+                            <TextBlock Text="Health" Foreground="{StaticResource TextMutedBrush}" FontSize="11" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="HealthCardText" Text="Idle" Foreground="{StaticResource AccentBrush}" FontSize="24" FontWeight="Bold" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource StatCardStyle}" Width="215" Height="104">
+                        <StackPanel>
+                            <TextBlock Text="Last Scan" Foreground="{StaticResource TextMutedBrush}" FontSize="11" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="LastRunCardText" Text="Not scanned yet" Foreground="{StaticResource TextPrimaryBrush}" FontSize="15" FontWeight="SemiBold" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                </WrapPanel>
+
+                <TabControl x:Name="ResultsTabs" Grid.Row="1">
+                    <TabItem Header="Overview">
+                        <Grid Margin="0,14,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="1.25*"/><ColumnDefinition Width="0.85*"/></Grid.ColumnDefinitions>
+                            <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="18" Padding="18" Margin="0,0,12,0">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <TextBox x:Name="ResultsOverviewBlock" Text="Start a scan to see results..." IsReadOnly="True" BorderThickness="0" TextWrapping="Wrap" AcceptsReturn="True" FontFamily="Consolas" FontSize="12" Background="Transparent" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                </ScrollViewer>
+                            </Border>
+                            <Border Grid.Column="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="18" Padding="18">
+                                <StackPanel>
+                                    <TextBlock Text="Live Scan Feed" Foreground="{StaticResource TextPrimaryBrush}" FontSize="18" FontWeight="Bold"/>
+                                    <TextBlock Text="Enable advanced view to watch phases, discovered devices, and ETA as the core writes snapshots." Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,6,0,12"/>
+                                    <CheckBox x:Name="AdvancedLiveCheck" Content="Show live diagnostic feed"/>
+                                    <Border x:Name="LiveViewBorder" Visibility="Collapsed" Background="#0C121C" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="12" Padding="10" Margin="0,10,0,0">
+                                        <TextBox x:Name="LiveViewBox" Text="Waiting for scan progress..." IsReadOnly="True" BorderThickness="0" Background="Transparent" Foreground="{StaticResource TextPrimaryBrush}" FontFamily="Consolas" FontSize="11" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="230" VerticalScrollBarVisibility="Auto"/>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="SSD Health">
+                        <Grid Margin="0,14,0,0">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                            <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="18" Padding="18" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="SSD Health Overview" Foreground="{StaticResource TextPrimaryBrush}" FontSize="18" FontWeight="Bold"/>
+                                    <TextBlock x:Name="SsdEmptyBlock" Text="Run diagnostics to populate drive health cards, temperature bars, wear bars, and reliability counters." Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,5,0,12"/>
+                                    <WrapPanel x:Name="SsdHealthCards"/>
+                                </StackPanel>
+                            </Border>
+                            <DataGrid x:Name="SSDHealthGrid" Grid.Row="1" AutoGenerateColumns="False">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Drive" Binding="{Binding FriendlyName}" Width="2*"/>
+                                    <DataGridTextColumn Header="Media" Binding="{Binding MediaType}" Width="*"/>
+                                    <DataGridTextColumn Header="Health" Binding="{Binding HealthStatus}" Width="*"/>
+                                    <DataGridTextColumn Header="Temp" Binding="{Binding Temperature}" Width="*"/>
+                                    <DataGridTextColumn Header="Wear" Binding="{Binding Wear}" Width="*"/>
+                                    <DataGridTextColumn Header="Read Errors" Binding="{Binding ReadErrors}" Width="*"/>
+                                    <DataGridTextColumn Header="Write Errors" Binding="{Binding WriteErrors}" Width="*"/>
+                                    <DataGridTextColumn Header="Power On" Binding="{Binding PowerOnHours}" Width="*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="Hardware Errors"><DataGrid x:Name="WHEAGrid" Margin="0,14,0,0" AutoGenerateColumns="True"/></TabItem>
+                    <TabItem Header="GPU Timeouts"><DataGrid x:Name="TDRGrid" Margin="0,14,0,0" AutoGenerateColumns="True"/></TabItem>
+                    <TabItem Header="Reboots"><DataGrid x:Name="RebootGrid" Margin="0,14,0,0" AutoGenerateColumns="True"/></TabItem>
+                    <TabItem Header="Storage Timeouts"><DataGrid x:Name="StorageGrid" Margin="0,14,0,0" AutoGenerateColumns="True"/></TabItem>
+                    <TabItem Header="Raw Log">
+                        <TextBox x:Name="RawOutputBox" Margin="0,14,0,0" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True" Padding="14" FontFamily="Consolas" FontSize="11" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Text="Run diagnostics to load raw analysis output."/>
+                    </TabItem>
+                </TabControl>
+            </Grid>
+
+            <Border Grid.Row="2" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="1" CornerRadius="18" Padding="14" Margin="0,16,0,0">
+                <StackPanel>
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="90"/></Grid.ColumnDefinitions>
+                        <ProgressBar x:Name="ProgressBar" Height="12" Minimum="0" Maximum="100" Value="0" Foreground="{StaticResource AccentBrush}" Background="#1A2434"/>
+                        <TextBlock x:Name="ProgressPercent" Grid.Column="1" Text="0%" Foreground="{StaticResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock x:Name="EtaBlock" Text="ETA: Not started" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"/>
+                        <Button x:Name="CancelCoreBtn" Grid.Column="2" Content="Cancel Scan" Visibility="Collapsed" Style="{StaticResource NavButtonStyle}" Width="130" Margin="10,0,0,0"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
 "@
 #endregion
 
@@ -81,6 +441,8 @@ $chkTdrTweak = $window.FindName('ChkTdrTweak')
 $chkNetReset = $window.FindName('ChkNetReset')
 $chkMemDiag = $window.FindName('ChkMemDiag')
 $chkDefenderScan = $window.FindName('ChkDefenderScan')
+$ssdHealthCards = $window.FindName('SsdHealthCards')
+$ssdEmptyBlock = $window.FindName('SsdEmptyBlock')
 
 # Universal log folder (shared with core): prefer a custom folder, then LocalAppData, then the configured fallback.
 $LogRoot = $null
@@ -206,6 +568,8 @@ function Start-LiveTracking {
             if ($phaseBlock) { $phaseBlock.Text = "Phase: $($snapshot.Phase)" }
             if ($etaBlock) { $etaBlock.Text = "ETA: $($snapshot.EtaText)" }
             if ($liveViewBox) { $liveViewBox.Text = Format-LiveSnapshot -Snapshot $snapshot; $liveViewBox.ScrollToEnd() }
+            $incrementalResults = Get-IncrementalResults
+            if ($incrementalResults -and $incrementalResults.SSDs) { Update-SsdHealthView -Items $incrementalResults.SSDs }
         }
     })
     $script:LiveTimer.Start()
@@ -332,22 +696,182 @@ function Get-ScoreValue {
     return 0
 }
 
+function Get-ResultItems {
+    param($Items)
+
+    if ($null -eq $Items) { return @() }
+    return @($Items)
+}
+
+function New-ObjectCollection {
+    param($Items)
+
+    $collection = New-Object 'System.Collections.ObjectModel.ObservableCollection[object]'
+    foreach ($item in (Get-ResultItems $Items)) {
+        [void]$collection.Add($item)
+    }
+    return $collection
+}
+
+function Get-NumericMetric {
+    param($Value)
+
+    if ($null -eq $Value) { return $null }
+    if ($Value -is [int] -or $Value -is [double] -or $Value -is [decimal]) { return [double]$Value }
+    $text = [string]$Value
+    $match = [regex]::Match($text, '-?\d+(\.\d+)?')
+    if ($match.Success) { return [double]$match.Value }
+    return $null
+}
+
+function Get-UiBrush {
+    param([string]$Color)
+    return ([System.Windows.Media.BrushConverter]::new()).ConvertFromString($Color)
+}
+
+function New-CardText {
+    param(
+        [string]$Text,
+        [int]$Size = 12,
+        [string]$Color = '#EAF0F7',
+        [string]$Weight = 'Normal',
+        [string]$Margin = '0,0,0,0'
+    )
+
+    $block = New-Object System.Windows.Controls.TextBlock
+    $block.Text = $Text
+    $block.FontSize = $Size
+    $block.Foreground = Get-UiBrush $Color
+    $block.FontWeight = $Weight
+    $block.Margin = $Margin
+    $block.TextWrapping = 'Wrap'
+    return $block
+}
+
+function Add-MetricRow {
+    param(
+        [System.Windows.Controls.Panel]$Panel,
+        [string]$Label,
+        $RawValue,
+        [double]$Maximum,
+        [string]$Color
+    )
+
+    $numeric = Get-NumericMetric $RawValue
+    $display = if ($null -ne $RawValue -and -not [string]::IsNullOrWhiteSpace([string]$RawValue)) { [string]$RawValue } else { 'N/A' }
+    $value = if ($null -ne $numeric) { [math]::Max(0, [math]::Min($Maximum, $numeric)) } else { 0 }
+
+    $header = New-Object System.Windows.Controls.Grid
+    $header.Margin = '0,10,0,4'
+    [void]$header.ColumnDefinitions.Add((New-Object System.Windows.Controls.ColumnDefinition))
+    $rightCol = New-Object System.Windows.Controls.ColumnDefinition
+    $rightCol.Width = [System.Windows.GridLength]::Auto
+    [void]$header.ColumnDefinitions.Add($rightCol)
+
+    $labelBlock = New-CardText -Text $Label -Size 11 -Color '#A8B4C4' -Weight 'SemiBold'
+    $valueBlock = New-CardText -Text $display -Size 11 -Color '#F4F8FC' -Weight 'SemiBold'
+    [System.Windows.Controls.Grid]::SetColumn($valueBlock, 1)
+    [void]$header.Children.Add($labelBlock)
+    [void]$header.Children.Add($valueBlock)
+    [void]$Panel.Children.Add($header)
+
+    $bar = New-Object System.Windows.Controls.ProgressBar
+    $bar.Minimum = 0
+    $bar.Maximum = $Maximum
+    $bar.Value = $value
+    $bar.Height = 8
+    $bar.Background = Get-UiBrush '#223044'
+    $bar.Foreground = Get-UiBrush $Color
+    [void]$Panel.Children.Add($bar)
+}
+
+function Update-SsdHealthView {
+    param($Items)
+
+    $ssdItems = Get-ResultItems $Items
+    if ($ssdHealthGrid) { $ssdHealthGrid.ItemsSource = New-ObjectCollection $ssdItems }
+    if (-not $ssdHealthCards) { return }
+
+    $ssdHealthCards.Children.Clear()
+    if ($ssdEmptyBlock) {
+        $ssdEmptyBlock.Text = if ($ssdItems.Count -gt 0) { "Detected $($ssdItems.Count) drive(s). Review the cards for at-a-glance temperature, wear, and media error status." } else { 'No SSD data found yet. Run diagnostics as Administrator so the core can query storage reliability counters.' }
+    }
+
+    if ($ssdItems.Count -eq 0) { return }
+
+    foreach ($disk in $ssdItems) {
+        $name = if ($disk.FriendlyName) { [string]$disk.FriendlyName } else { 'Unknown drive' }
+        $health = if ($disk.HealthStatus) { [string]$disk.HealthStatus } else { 'Unknown' }
+        $media = if ($disk.MediaType) { [string]$disk.MediaType } else { 'Storage device' }
+        $temp = if ($disk.Temperature) { $disk.Temperature } else { 'N/A' }
+        $wear = if ($disk.Wear) { $disk.Wear } else { 'N/A' }
+        $readErrors = if ($null -ne $disk.ReadErrors) { [int64]$disk.ReadErrors } else { 0 }
+        $writeErrors = if ($null -ne $disk.WriteErrors) { [int64]$disk.WriteErrors } else { 0 }
+        $errorTotal = $readErrors + $writeErrors
+        $tempValue = Get-NumericMetric $temp
+        $wearValue = Get-NumericMetric $wear
+
+        $statusColor = '#22C55E'
+        if ($health -notmatch 'Healthy|OK|Unknown') { $statusColor = '#EF4444' }
+        elseif (($null -ne $tempValue -and $tempValue -ge 55) -or ($null -ne $wearValue -and $wearValue -ge 80) -or $errorTotal -gt 0) { $statusColor = '#F59E0B' }
+
+        $card = New-Object System.Windows.Controls.Border
+        $card.Width = 300
+        $card.MinHeight = 210
+        $card.Margin = '0,0,12,12'
+        $card.Padding = '16'
+        $card.CornerRadius = '16'
+        $card.Background = Get-UiBrush '#121B29'
+        $card.BorderBrush = Get-UiBrush '#263549'
+        $card.BorderThickness = '1'
+
+        $stack = New-Object System.Windows.Controls.StackPanel
+        [void]$stack.Children.Add((New-CardText -Text $name -Size 15 -Color '#F4F8FC' -Weight 'Bold' -Margin '0,0,0,4'))
+        [void]$stack.Children.Add((New-CardText -Text $media -Size 11 -Color '#A8B4C4' -Margin '0,0,0,10'))
+
+        $pill = New-Object System.Windows.Controls.Border
+        $pill.Background = Get-UiBrush $statusColor
+        $pill.CornerRadius = '10'
+        $pill.Padding = '10,5'
+        $pill.HorizontalAlignment = 'Left'
+        $pill.Child = New-CardText -Text $health -Size 11 -Color '#06121C' -Weight 'Bold'
+        [void]$stack.Children.Add($pill)
+
+        Add-MetricRow -Panel $stack -Label 'Temperature' -RawValue $temp -Maximum 80 -Color '#38BDF8'
+        Add-MetricRow -Panel $stack -Label 'Wear Used' -RawValue $wear -Maximum 100 -Color '#22C55E'
+        Add-MetricRow -Panel $stack -Label 'Media Errors' -RawValue $errorTotal -Maximum 10 -Color $(if ($errorTotal -gt 0) { '#EF4444' } else { '#22C55E' })
+
+        if ($disk.PowerOnHours) {
+            [void]$stack.Children.Add((New-CardText -Text "Power on: $($disk.PowerOnHours)" -Size 11 -Color '#A8B4C4' -Margin '0,10,0,0'))
+        }
+
+        $card.Child = $stack
+        [void]$ssdHealthCards.Children.Add($card)
+    }
+}
+
 function Update-ResultSummary {
     param($Results)
     if (-not $Results) { return }
+
+    $ssdItems = Get-ResultItems $Results.SSDs
+    $wheaItems = Get-ResultItems $Results.WHEAEvents
+    $tdrItems = Get-ResultItems $Results.TDREvents
+    $rebootItems = Get-ResultItems $Results.RebootEvents
+    $storageItems = Get-ResultItems $Results.StorageTimeouts
 
     $scoreStorage = Get-ScoreValue -Scores $Results.AllScores -Names @('Storage')
     $scoreHardware = Get-ScoreValue -Scores $Results.AllScores -Names @('Hardware', 'WHEA')
     $scoreGpu = Get-ScoreValue -Scores $Results.AllScores -Names @('GPU')
     $scoreMemory = Get-ScoreValue -Scores $Results.AllScores -Names @('Memory')
-    $totalFindings = @($Results.SSDs.Count, $Results.WHEAEvents.Count, $Results.TDREvents.Count, $Results.RebootEvents.Count, $Results.StorageTimeouts.Count) | Measure-Object -Sum | Select-Object -ExpandProperty Sum
+    $totalFindings = @($ssdItems.Count, $wheaItems.Count, $tdrItems.Count, $rebootItems.Count, $storageItems.Count) | Measure-Object -Sum | Select-Object -ExpandProperty Sum
     $healthText = if ($Results.TopIssueScore -ge 40) { 'CRITICAL' } elseif ($Results.TopIssueScore -ge 20) { 'WARNING' } elseif ($Results.TopIssueScore -ge 1) { 'MINOR' } else { 'HEALTHY' }
 
-    $topIssueCardText.Text = if ($Results.TopIssue) { $Results.TopIssue } else { 'No issues detected' }
-    $findingsCardText.Text = "{0} findings" -f $totalFindings
-    $healthCardText.Text = $healthText
-    $lastRunCardText.Text = if ($Results.Timestamp) { "{0:MMM d, yyyy h:mm tt}" -f [datetime]$Results.Timestamp } else { 'Not run yet' }
-    $quickSummaryBlock.Text = "Status: $healthText`nFindings: $totalFindings`nTop issue: $($topIssueCardText.Text)"
+    if ($topIssueCardText) { $topIssueCardText.Text = if ($Results.TopIssue) { $Results.TopIssue } else { 'No issues detected' } }
+    if ($findingsCardText) { $findingsCardText.Text = "{0} findings" -f $totalFindings }
+    if ($healthCardText) { $healthCardText.Text = $healthText }
+    if ($lastRunCardText) { $lastRunCardText.Text = if ($Results.Timestamp) { "{0:MMM d, yyyy h:mm tt}" -f [datetime]$Results.Timestamp } else { 'Not run yet' } }
+    if ($quickSummaryBlock) { $quickSummaryBlock.Text = "Status: $healthText`nFindings: $totalFindings`nTop issue: $($topIssueCardText.Text)" }
 
     if ($resultsOverviewBlock) {
         $resultsOverviewBlock.Text = @"
@@ -363,23 +887,23 @@ Graphics: $scoreGpu points
 Memory: $scoreMemory points
 
 FINDINGS:
-Storage Devices: $($Results.SSDs.Count) detected
-Hardware Errors: $($Results.WHEAEvents.Count) events
-GPU Timeouts: $($Results.TDREvents.Count) events
-Reboot Events: $($Results.RebootEvents.Count) events
-Storage Timeouts: $($Results.StorageTimeouts.Count) events
+Storage Devices: $($ssdItems.Count) detected
+Hardware Errors: $($wheaItems.Count) events
+GPU Timeouts: $($tdrItems.Count) events
+Reboot Events: $($rebootItems.Count) events
+Storage Timeouts: $($storageItems.Count) events
 
 Diagnostics run: $($Results.Timestamp)
 
-See tabs above for detailed results
+Open the SSD Health tab for per-drive cards and detailed reliability counters.
 "@
     }
 
-    if ($ssdHealthGrid) { $ssdHealthGrid.ItemsSource = $Results.SSDs }
-    if ($wheaGrid) { $wheaGrid.ItemsSource = $Results.WHEAEvents }
-    if ($tdrGrid) { $tdrGrid.ItemsSource = $Results.TDREvents }
-    if ($rebootGrid) { $rebootGrid.ItemsSource = $Results.RebootEvents }
-    if ($storageGrid) { $storageGrid.ItemsSource = $Results.StorageTimeouts }
+    Update-SsdHealthView -Items $ssdItems
+    if ($wheaGrid) { $wheaGrid.ItemsSource = New-ObjectCollection $wheaItems }
+    if ($tdrGrid) { $tdrGrid.ItemsSource = New-ObjectCollection $tdrItems }
+    if ($rebootGrid) { $rebootGrid.ItemsSource = New-ObjectCollection $rebootItems }
+    if ($storageGrid) { $storageGrid.ItemsSource = New-ObjectCollection $storageItems }
 }
 
 function Show-Results {
@@ -594,6 +1118,7 @@ $window.Add_Loaded({
         Set-LiveViewVisibility
         if ($phaseBlock) { $phaseBlock.Text = 'Phase: idle' }
         if ($etaBlock) { $etaBlock.Text = 'ETA: Not started' }
+        Update-SsdHealthView -Items @()
         Select-ResultsTab 0
     } catch {
         Set-Status "ERROR during initialization: $_"

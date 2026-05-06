@@ -262,7 +262,9 @@ function Invoke-WindowsUpdateMaintenance {
 
 function Get-SSDHealthDetail {
     <#
-    Fetch deep SSD diagnostics: SMART data via storage reliability counters
+    Fetch deep SSD diagnostics: SMART data via storage reliability counters.
+    Falls back to Win32_DiskDrive inventory so the GUI can still populate drive cards
+    on systems where Storage module reliability counters are unavailable.
     #>
     $ssdDetails = @()
     try {
@@ -274,7 +276,7 @@ function Get-SSDHealthDetail {
                 Size = "{0} GB" -f [math]::Round($disk.Size / 1GB, 2)
                 HealthStatus = $disk.HealthStatus
                 OperationalStatus = $disk.OperationalStatus
-                SerialNumber = ""
+                SerialNumber = $disk.SerialNumber
                 Temperature = "N/A"
                 Wear = "N/A"
                 ReadErrors = 0
@@ -282,26 +284,51 @@ function Get-SSDHealthDetail {
                 PowerOnHours = "N/A"
                 UnsafeShutdowns = 0
             }
-            
-            # Try to get detailed reliability counters
+
+            # Try to get detailed reliability counters.
             if (Get-Command Get-StorageReliabilityCounter -ErrorAction SilentlyContinue) {
                 try {
                     $counter = Get-StorageReliabilityCounter -PhysicalDisk $disk
                     if ($counter) {
-                        $diskInfo.Temperature = "{0}C" -f $counter.Temperature
-                        $diskInfo.Wear = "{0}%" -f $counter.Wear
-                        $diskInfo.ReadErrors = $counter.ReadErrorsTotal
-                        $diskInfo.WriteErrors = $counter.WriteErrorsTotal
-                        $diskInfo.PowerOnHours = $counter.PowerOnHours
-                        $diskInfo.UnsafeShutdowns = $counter.UnsafeShutdowns
+                        if ($null -ne $counter.Temperature) { $diskInfo.Temperature = "{0}C" -f $counter.Temperature }
+                        if ($null -ne $counter.Wear) { $diskInfo.Wear = "{0}%" -f $counter.Wear }
+                        $diskInfo.ReadErrors = if ($null -ne $counter.ReadErrorsTotal) { $counter.ReadErrorsTotal } else { 0 }
+                        $diskInfo.WriteErrors = if ($null -ne $counter.WriteErrorsTotal) { $counter.WriteErrorsTotal } else { 0 }
+                        $diskInfo.PowerOnHours = if ($null -ne $counter.PowerOnHours) { $counter.PowerOnHours } else { 'N/A' }
+                        $diskInfo.UnsafeShutdowns = if ($null -ne $counter.UnsafeShutdowns) { $counter.UnsafeShutdowns } else { 0 }
                     }
                 } catch { }
             }
-            
+
             $ssdDetails += [pscustomobject]$diskInfo
         }
     } catch { }
-    
+
+    if ($ssdDetails.Count -eq 0) {
+        try {
+            $diskDrives = Get-CimInstance Win32_DiskDrive -ErrorAction Stop
+            foreach ($drive in $diskDrives) {
+                $status = if ($drive.Status) { $drive.Status } else { 'Unknown' }
+                $mediaType = if ($drive.MediaType) { $drive.MediaType } else { 'Disk drive' }
+                $sizeText = if ($drive.Size) { "{0} GB" -f [math]::Round($drive.Size / 1GB, 2) } else { 'N/A' }
+                $ssdDetails += [pscustomobject][ordered]@{
+                    FriendlyName = $drive.Model
+                    MediaType = $mediaType
+                    Size = $sizeText
+                    HealthStatus = $status
+                    OperationalStatus = $status
+                    SerialNumber = $drive.SerialNumber
+                    Temperature = 'N/A'
+                    Wear = 'N/A'
+                    ReadErrors = 0
+                    WriteErrors = 0
+                    PowerOnHours = 'N/A'
+                    UnsafeShutdowns = 0
+                }
+            }
+        } catch { }
+    }
+
     return $ssdDetails
 }
 
