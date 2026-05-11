@@ -603,6 +603,7 @@ $ProgressSnapshotPath = Join-Path $LogRoot 'progress_snapshot.json'
 $ProgressTextPath = Join-Path $LogRoot 'progress_snapshot.txt'
 $script:CoreProcess = $null
 $script:LiveTimer = $null
+$script:IsCoreRunActive = $false
 
 function Read-FileWithRetry {
     param(
@@ -697,18 +698,62 @@ function Set-LiveViewVisibility {
     $liveViewBorder.Visibility = if ($advancedLiveCheck -and $advancedLiveCheck.IsChecked) { 'Visible' } else { 'Collapsed' }
 }
 
+function Get-GuiPollingIntervalMs {
+    $pollingMs = $null
+    try {
+        if ($script:Config.Performance -and $null -ne $script:Config.Performance.GUIPollingIntervalMs) {
+            $pollingMs = [int]$script:Config.Performance.GUIPollingIntervalMs
+        }
+    } catch { }
+
+    if ($null -eq $pollingMs -or $pollingMs -lt 100 -or $pollingMs -gt 5000) {
+        return 250
+    }
+
+    return $pollingMs
+}
+
+function Set-RunUiState {
+    param(
+        [bool]$IsRunning,
+        [string]$BusyStatus = 'Working...'
+    )
+
+    $script:IsCoreRunActive = $IsRunning
+
+    foreach ($button in @($diagnosticsBtn, $autoFixBtn, $fullAutoBtn, $repairsBtn)) {
+        if ($button) { $button.IsEnabled = -not $IsRunning }
+    }
+
+    if ($modeSelector) { $modeSelector.IsEnabled = -not $IsRunning }
+
+    foreach ($check in @($chkWindowsRepair, $chkTdrTweak, $chkNetReset, $chkMemDiag, $chkDefenderScan)) {
+        if ($check) { $check.IsEnabled = -not $IsRunning }
+    }
+
+    if ($cancelCoreBtn) { $cancelCoreBtn.Visibility = if ($IsRunning) { 'Visible' } else { 'Collapsed' } }
+    if ($IsRunning -and $BusyStatus) { Set-Status $BusyStatus }
+}
+
+function Test-CanStartRun {
+    if ($script:IsCoreRunActive) {
+        Set-Status 'A run is already in progress. Cancel it or wait for completion.'
+        return $false
+    }
+
+    return $true
+}
+
 function Start-LiveTracking {
     if ($script:LiveTimer) { $script:LiveTimer.Stop() }
-    if ($cancelCoreBtn) { $cancelCoreBtn.Visibility = 'Visible' }
     $script:LiveTimer = New-Object Windows.Threading.DispatcherTimer
-    $script:LiveTimer.Interval = [TimeSpan]::FromMilliseconds($script:Config.Performance.GUIPollingIntervalMs)
+    $script:LiveTimer.Interval = [TimeSpan]::FromMilliseconds((Get-GuiPollingIntervalMs))
     $script:LiveTimer.Add_Tick({
         try {
             $snapshot = Get-ProgressSnapshot
             if ($snapshot) {
                 if ($progressBar) { $progressBar.IsIndeterminate = $false; $progressBar.Value = [double]$snapshot.Percent }
-                if ($progressPercent) { $progressPercent.Text = ("{0:0.0}%" -f [double]$snapshot.Percent) }
-                if ($statusBlock) { $statusBlock.Text = $snapshot.Message }
+                Set-Status -Message ([string]$snapshot.Message) -Progress ([double]$snapshot.Percent)
                 if ($phaseBlock) { $phaseBlock.Text = "Phase: $($snapshot.Phase)" }
                 if ($etaBlock) { $etaBlock.Text = "ETA: $($snapshot.EtaText)" }
                 if ($liveViewBox) { $liveViewBox.Text = Format-LiveSnapshot -Snapshot $snapshot; $liveViewBox.ScrollToEnd() }
@@ -725,7 +770,6 @@ function Start-LiveTracking {
 function Stop-LiveTracking {
     if ($script:LiveTimer) { $script:LiveTimer.Stop() }
     if ($progressBar) { $progressBar.IsIndeterminate = $false }
-    if ($cancelCoreBtn) { $cancelCoreBtn.Visibility = 'Collapsed' }
 }
 
 function Clear-LiveRunFiles {
@@ -773,6 +817,10 @@ function Wait-ForCoreProcess {
 function Start-CoreRun {
     param([string[]]$Arguments)
 
+    if ($script:IsCoreRunActive) {
+        throw 'A diagnostics or repair run is already in progress.'
+    }
+
     $scriptPath = Join-Path $PSScriptRoot 'Cipher-System-Check-v7-Core.ps1'
     if (-not (Test-Path $scriptPath)) { throw "Core script not found at $scriptPath" }
 
@@ -781,12 +829,15 @@ function Start-CoreRun {
     $argumentList = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$scriptPath`"") + $Arguments
 
     try {
+        Set-RunUiState -IsRunning $true -BusyStatus 'Starting diagnostics engine...'
         $script:CoreProcess = Start-Process -FilePath $powershellExe -ArgumentList $argumentList -WindowStyle Hidden -PassThru -ErrorAction Stop
         Start-LiveTracking
         Wait-ForCoreProcess -Process $script:CoreProcess
         return $script:CoreProcess.ExitCode
     } finally {
         Stop-LiveTracking
+        $script:CoreProcess = $null
+        Set-RunUiState -IsRunning $false
     }
 }
 
@@ -828,8 +879,7 @@ function Cancel-Core {
         if ($script:CoreProcess -and -not $script:CoreProcess.HasExited) {
             $coreProcessId = $script:CoreProcess.Id
             Stop-Process -Id $coreProcessId -Force -ErrorAction SilentlyContinue
-            Set-Status 'Core run cancelled by user.'
-            if ($cancelCoreBtn) { $cancelCoreBtn.Visibility = 'Collapsed' }
+            Set-Status 'Cancellation requested. Waiting for core process to exit...'
         }
     } catch {
         Set-Status "Failed to cancel core: $_"
@@ -1173,6 +1223,8 @@ function Copy-SummaryToClipboard {
 }
 
 function Invoke-Diagnostics {
+    if (-not (Test-CanStartRun)) { return }
+
     Set-Status 'Starting diagnostics...' 0
     if ($progressBar) { $progressBar.IsIndeterminate = $true }
 
@@ -1182,13 +1234,17 @@ function Invoke-Diagnostics {
         $exitCode = Start-CoreRun -Arguments $arguments
         if ($exitCode -ne 0) { throw "Core diagnostics exited with code $exitCode" }
         Show-Results
+        return $true
     } catch {
         Stop-LiveTracking
         Set-Status "ERROR: Diagnostics failed: $_"
+        return $false
     }
 }
 
 function Invoke-SelectedRepairs {
+    if (-not (Test-CanStartRun)) { return }
+
     $repairs = @()
     if ($chkWindowsRepair -and $chkWindowsRepair.IsChecked) { $repairs += '-RunRepair' }
     if ($chkTdrTweak -and $chkTdrTweak.IsChecked) { $repairs += '-RunTdrTweak' }
@@ -1240,7 +1296,10 @@ function Get-RecommendedRepairs {
 }
 
 function Invoke-AutoScanAndFix {
-    Invoke-Diagnostics
+    if (-not (Test-CanStartRun)) { return }
+
+    $scanSucceeded = Invoke-Diagnostics
+    if (-not $scanSucceeded) { return }
 
     $xmlPath = Join-Path $LogRoot 'diagnostic_results.xml'
     if (-not (Test-Path $xmlPath)) {
@@ -1273,6 +1332,8 @@ function Invoke-AutoScanAndFix {
 }
 
 function Invoke-FullAutomation {
+    if (-not (Test-CanStartRun)) { return }
+
     $mode = Get-SelectedAutomationMode
     Set-Status "Running $mode automation..." 0
 
@@ -1352,6 +1413,7 @@ if ($helpBtn) {
 $window.Add_Loaded({
     try {
         Update-SystemInfo
+        Set-RunUiState -IsRunning $false
         Set-Status 'Ready to start scan' 0
         Set-LiveViewVisibility
         if ($phaseBlock) { $phaseBlock.Text = 'Phase: idle' }

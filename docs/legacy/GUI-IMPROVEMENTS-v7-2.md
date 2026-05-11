@@ -86,9 +86,9 @@
    - Still writes atomic progress snapshots
    - Works with new GUI improvements
 
-3. `Cipher-System-Check-v7-GUI.bat` (launcher)
-   - Uses `-NoProfile` to avoid profile interference
-   - Proper GUI launch without PowerShell profile errors
+3. `Cipher-System-Check-v7-Launcher.bat` + `Cipher-System-Check-v7.ps1` (launcher + unified entrypoint)
+  - Uses one official launcher for end users
+  - Unified PowerShell entrypoint handles GUI/Core/Test routing
 
 4. `Cipher-System-Check-Config.psd1`
    - Universal config system working perfectly
@@ -118,7 +118,7 @@
 ## Validation
 
 ✅ **Parse Check**: Both scripts validate without syntax errors
-✅ **GUI Launcher**: Uses proper batch launcher (Cipher-System-Check-v7-GUI.bat)
+✅ **GUI Launcher**: Uses official launcher (Cipher-System-Check-v7-Launcher.bat)
 ✅ **Core Functionality**: All diagnostics work as before
 ✅ **Progress Tracking**: Real-time updates visible to user
 ✅ **Stats Display**: Formatted and readable
@@ -129,12 +129,12 @@
 
 ### Launch GUI:
 ```batch
-Cipher-System-Check-v7-GUI.bat
+Cipher-System-Check-v7-Launcher.bat
 ```
 
 Or directly:
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File Cipher-System-Check-v7-GUI.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File Cipher-System-Check-v7.ps1 -Mode Gui
 ```
 
 ### Run Scans:

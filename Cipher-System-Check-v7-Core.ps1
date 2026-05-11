@@ -37,6 +37,7 @@ if ($script:Config.UserSpecific -and $script:Config.UserSpecific.CustomLogFolder
     $LogRoot = Join-Path $env:USERPROFILE $script:Config.Logging.FallbackFolder
 }
 New-Item -ItemType Directory -Force -Path $LogRoot | Out-Null
+$script:CommandProcessor = if ($env:COMSPEC) { $env:COMSPEC } else { 'cmd.exe' }
 
 # Quick test mode: generate a small, valid diagnostic and exit early to allow fast GUI testing.
 if ($TestMode) {
@@ -202,8 +203,7 @@ function Invoke-Cmd {
         [Parameter(Mandatory = $true)][string]$OutName
     )
 
-    $commandProcessor = if ($env:COMSPEC) { $env:COMSPEC } else { 'cmd.exe' }
-    $output = & $commandProcessor /d /s /c $Cmd 2>&1
+    $output = & $script:CommandProcessor /d /s /c $Cmd 2>&1
     $output | Out-File -FilePath (Join-Path $LogRoot $OutName) -Encoding utf8 -Force
     return $output
 }
@@ -214,6 +214,8 @@ function Test-Admin {
 }
 
 function Add-Score { param([string]$Name, [int]$Points, [string]$Reason)
+    if (-not $global:Scores.Contains($Name)) { $global:Scores[$Name] = 0 }
+    if (-not $global:Reasons.Contains($Name)) { $global:Reasons[$Name] = @() }
     $global:Scores[$Name] += $Points
     $global:Reasons[$Name] += @($Reason)
 }
@@ -236,6 +238,8 @@ function Convert-ToSingleLineText {
 
 function Get-RecentSystemEvents {
     param([int]$Days = 30)
+
+    if ($Days -lt 1) { $Days = 1 }
 
     try {
         Get-WinEvent -FilterHashtable @{LogName='System'; StartTime=(Get-Date).AddDays(-$Days)} -ErrorAction Stop |
@@ -498,7 +502,7 @@ Write-Section "Windows Integrity Checks" -Silent | Out-Null
 try {
     $sfcOut = Join-Path $LogRoot 'sfc.txt'
     $sfcCmd = "/c sfc /scannow > `"$sfcOut`" 2>&1"
-    $sfcProc = Start-Process -FilePath $env:COMSPEC -ArgumentList $sfcCmd -WindowStyle Hidden -PassThru -ErrorAction Stop
+    $sfcProc = Start-Process -FilePath $script:CommandProcessor -ArgumentList $sfcCmd -WindowStyle Hidden -PassThru -ErrorAction Stop
     while (-not $sfcProc.HasExited) {
         Set-ProgressPhase -Phase 'Windows Integrity Checks' -Message 'sfc /scannow (running)' -Percent 20 -Detail 'sfc /scannow'
         Start-Sleep -Seconds 8
@@ -519,7 +523,7 @@ try {
         Set-ProgressPhase -Phase 'Windows Integrity Checks' -Message $d.Cmd -Percent $d.Pct -Detail $d.Cmd
         $outFile = Join-Path $LogRoot $($d.Out)
         $cmd = "/c $($d.Cmd) > `"$outFile`" 2>&1"
-        $proc = Start-Process -FilePath $env:COMSPEC -ArgumentList $cmd -WindowStyle Hidden -PassThru -ErrorAction Stop
+        $proc = Start-Process -FilePath $script:CommandProcessor -ArgumentList $cmd -WindowStyle Hidden -PassThru -ErrorAction Stop
         while (-not $proc.HasExited) {
             Set-ProgressPhase -Phase 'Windows Integrity Checks' -Message "$($d.Cmd) (running)" -Percent $d.Pct -Detail $d.Cmd
             Start-Sleep -Seconds 10
@@ -556,7 +560,7 @@ foreach ($driveLetter in $fixedDriveLetters) {
     try {
         $outFile = Join-Path $LogRoot ("chkdsk_{0}_scan.txt" -f $driveLetter)
         $cmd = "/c chkdsk $driveLetter`: /scan > `"$outFile`" 2>&1"
-        $proc = Start-Process -FilePath $env:COMSPEC -ArgumentList $cmd -WindowStyle Hidden -PassThru -ErrorAction Stop
+        $proc = Start-Process -FilePath $script:CommandProcessor -ArgumentList $cmd -WindowStyle Hidden -PassThru -ErrorAction Stop
 
         # Poll the running chkdsk and emit frequent progress snapshots so the GUI/watchdog stays informed
         while (-not $proc.HasExited) {
@@ -761,7 +765,7 @@ if ($RunRepair) {
     try {
         $outFile = Join-Path $LogRoot 'dism_restorehealth_after_reset.txt'
         $cmd = "/c DISM /Online /Cleanup-Image /RestoreHealth > `"$outFile`" 2>&1"
-        $proc = Start-Process -FilePath $env:COMSPEC -ArgumentList $cmd -WindowStyle Hidden -PassThru -ErrorAction Stop
+        $proc = Start-Process -FilePath $script:CommandProcessor -ArgumentList $cmd -WindowStyle Hidden -PassThru -ErrorAction Stop
         while (-not $proc.HasExited) {
             Set-ProgressPhase -Phase 'Applying Windows Repairs' -Message 'DISM RestoreHealth (running)' -Percent 98 -Detail 'DISM /RestoreHealth'
             Start-Sleep -Seconds 10

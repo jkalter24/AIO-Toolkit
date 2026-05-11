@@ -221,27 +221,25 @@ Cipher-System-Check-v7-Launcher.bat
 # PowerShell (as Administrator):
 # Change to the folder where you saved the scripts (e.g. your Downloads folder):
 cd "C:\Path\To\Scripts"
-powershell.exe -ExecutionPolicy Bypass -File .\Cipher-System-Check-v7-GUI.ps1
+powershell.exe -ExecutionPolicy Bypass -File .\Cipher-System-Check-v7.ps1 -Mode Gui
 ```
 
 ### Console Only (No GUI)
 ```powershell
 # Diagnostics only:
-.\Cipher-System-Check-v7-Core.ps1
+.\Cipher-System-Check-v7.ps1 -Mode Core
 
 # With repairs:
-.\Cipher-System-Check-v7-Core.ps1 -RunRepair -RunTdrTweak -RunNetworkReset
+.\Cipher-System-Check-v7.ps1 -Mode Core -RunRepair -RunTdrTweak -RunNetworkReset
 
 # Quiet mode (for automation):
-.\Cipher-System-Check-v7-Core.ps1 -QuietMode
+.\Cipher-System-Check-v7.ps1 -Mode Core -QuietMode
 ```
 
 ### Scripting/Automation
 ```powershell
-# Import and use functions programmatically:
-. .\Cipher-System-Check-v7-Core.ps1
-$ssdHealth = Get-SSDHealthDetail
-$wheaEvents = Get-WHEADetails
+# Use the canonical script entrypoint in scheduled or automation contexts:
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Cipher-System-Check-v7.ps1 -Mode Core -QuietMode
 ```
 
 ---
@@ -293,7 +291,7 @@ $wheaEvents = Get-WHEADetails
 
 ## Next Steps for You
 
-1. **Save these files** - Keep all 4 files together in same folder
+1. **Keep files together** - Launcher, unified script, GUI/core internals, and config in same folder
 2. **Read README.md** - Full guide with interpretation tips
 3. **Run GUI launcher** - Double-click the .bat file or use launcher
 4. **Review results** - Look at Overview tab for top issues
@@ -309,6 +307,7 @@ All files must be in the same directory (the folder where you saved the scripts)
 ```
 <scripts-folder>
 ├─ Cipher-System-Check-v7-Launcher.bat
+├─ Cipher-System-Check-v7.ps1
 ├─ Cipher-System-Check-v7-GUI.ps1
 ├─ Cipher-System-Check-v7-Core.ps1
 └─ Cipher-System-Check-v7-README.md
@@ -335,7 +334,7 @@ Add-Type -AssemblyName PresentationFramework
 - Ensure Administrator (Run as Administrator)
 - Some repairs need UAC bypass:
   ```powershell
-  powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File "...\Cipher-System-Check-v7-Core.ps1" -RunRepair
+    powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File "...\Cipher-System-Check-v7.ps1" -Mode Core -RunRepair
   ```
 
 ---

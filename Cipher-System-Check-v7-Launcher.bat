@@ -1,16 +1,9 @@
 @echo off
 setlocal
-REM Cipher System Check v7 - Quick Launcher
-REM Double-click this file to launch the GUI. It will request elevation if needed.
+REM Cipher System Check v7 - Unified Launcher
+REM Official launcher that calls the unified entry script.
 
 cd /d "%~dp0"
-
-net session >nul 2>&1
-if %errorLevel% neq 0 (
-    echo Requesting Administrator privileges...
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
-    exit /b
-)
 
 echo.
 echo =====================================
@@ -18,24 +11,18 @@ echo  Cipher System Check v7 - Launcher
 echo =====================================
 echo.
 
-REM Check if GUI script exists
-if not exist "%~dp0Cipher-System-Check-v7-GUI.ps1" (
-    echo ERROR: GUI script not found in current directory.
+REM Check if unified script exists
+if not exist "%~dp0Cipher-System-Check-v7.ps1" (
+    echo ERROR: Unified script not found in current directory.
     echo Make sure both files are in the same folder:
-    echo   - Cipher-System-Check-v7-Launcher.bat (this file)
-    echo   - Cipher-System-Check-v7-GUI.ps1
-    echo   - Cipher-System-Check-v7-Core.ps1
-    echo.
-    pause
+    echo   - Cipher-System-Check-v7-Launcher.bat
+    echo   - Cipher-System-Check-v7.ps1
     exit /b 1
 )
 
-REM Launch PowerShell with GUI
-echo Launching Cipher System Check GUI...
+REM Launch unified script (default mode = GUI)
+echo Launching Cipher System Check...
 echo.
 
-powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File "%~dp0Cipher-System-Check-v7-GUI.ps1"
-
-echo.
-echo GUI closed.
-pause
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0Cipher-System-Check-v7.ps1" -Mode Gui
+exit /b %errorlevel%
