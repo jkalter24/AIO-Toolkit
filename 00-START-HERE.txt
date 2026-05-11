@@ -12,7 +12,6 @@ You now have a professional-grade Windows system diagnostics and repair toolkit 
 
 | File | Purpose | Action |
 |------|---------|--------|
-| **VERIFY-SETUP.bat** | Validates all files present | Double-click to verify installation |
 | **QUICK-REFERENCE.txt** | 2-page cheat sheet | Read for quick start |
 | **Cipher-System-Check-v7-Launcher.bat** | GUI launcher | **Double-click to run (as Administrator)** |
 
@@ -27,6 +26,7 @@ You now have a professional-grade Windows system diagnostics and repair toolkit 
 
 | File | Purpose | Run When |
 |------|---------|----------|
+| **Cipher-System-Check-v7.ps1** | Unified entrypoint (GUI/Core/Test modes) | Run this directly from PowerShell when needed |
 | **Cipher-System-Check-v7-Core.ps1** | Core diagnostics engine (550 lines) | GUI calls this, or run standalone |
 | **Cipher-System-Check-v7-GUI.ps1** | WPF dashboard interface | Launched by .bat file or direct PowerShell |
 
@@ -37,10 +37,8 @@ You now have a professional-grade Windows system diagnostics and repair toolkit 
 ```
 START
   ↓
-Run VERIFY-SETUP.bat (optional, ~2 seconds)
-  ↓
 Double-click Cipher-System-Check-v7-Launcher.bat
-  ↓ (or manually run GUI .ps1)
+  ↓ (or manually run the unified .ps1 entrypoint)
 WPF Dashboard opens
   ↓
 Click "▶ Start Full Scan"
@@ -267,7 +265,7 @@ FASTEST PATH TO DIAGNOSIS:
 1. Open PowerShell as Administrator
 2. Change to the folder where you saved the scripts (e.g. your Downloads folder)
   Example: `cd "C:\Path\To\Scripts"`
-3. .\Cipher-System-Check-v7-Core.ps1 -QuietMode
+3. .\Cipher-System-Check-v7.ps1 -Mode Core -QuietMode
 4. Open the per-user log folder: `%LOCALAPPDATA%\CipherCheck\Logs` (or check the folder where you ran the scripts)
 5. Open analysis_ranked.txt in Notepad
 6. Look at "Most likely culprit:"
@@ -423,11 +421,10 @@ Before you consider the issue resolved:
 - Troubleshoot: See README.md "Troubleshooting" section
 
 **Ready to Begin?**
-1. Double-click: `VERIFY-SETUP.bat`
-2. Double-click: `Cipher-System-Check-v7-Launcher.bat`
-3. Review the results
-4. Apply repairs carefully, one at a time
-5. Rerun diagnostics to validate improvements
+1. Double-click: `Cipher-System-Check-v7-Launcher.bat`
+2. Review the results
+3. Apply repairs carefully, one at a time
+4. Rerun diagnostics to validate improvements
 
 ---
 

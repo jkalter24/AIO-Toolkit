@@ -78,7 +78,7 @@ Cipher-System-Check-v7/
 ├── Cipher-System-Check-Config.psd1          # Configuration (optional customization)
 ├── Cipher-System-Check-v7-README.md         # This file
 ├── Cipher-System-Check-v7-Launcher.bat      # Windows batch launcher
-├── VERIFY-SETUP.bat                        # Validation script
+├── Cipher-System-Check-v7-Launcher.bat     # Official launcher
 ├── tools/
 │   └── parse_check.ps1                     # Parser validation tool
 └── %LOCALAPPDATA%\CipherCheck\Logs/        # Generated logs (automatic)

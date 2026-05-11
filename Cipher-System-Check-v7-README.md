@@ -60,7 +60,7 @@ MOBO: Asus TUF GAMING B550-PLUS WIFI II
 # Run in PowerShell as Administrator
 # Change to the folder where you saved the scripts, for example your Downloads folder:
 cd "C:\Path\To\Scripts"    # e.g. C:\Users\You\Downloads
-powershell.exe -ExecutionPolicy Bypass -File .\Cipher-System-Check-v7-GUI.ps1
+powershell.exe -ExecutionPolicy Bypass -File .\Cipher-System-Check-v7.ps1 -Mode Gui
 ```
 
 **What to do:**
@@ -75,16 +75,16 @@ powershell.exe -ExecutionPolicy Bypass -File .\Cipher-System-Check-v7-GUI.ps1
 ```powershell
 # Full diagnostics + analysis only (run from the scripts folder)
 cd "C:\Path\To\Scripts"    # change to the folder where you saved the scripts
-powershell.exe -ExecutionPolicy Bypass -File .\Cipher-System-Check-v7-Core.ps1
+powershell.exe -ExecutionPolicy Bypass -File .\Cipher-System-Check-v7.ps1 -Mode Core
 
 # Diagnostics + Windows repairs
-powershell.exe -ExecutionPolicy Bypass -File .\Cipher-System-Check-v7-Core.ps1 -RunRepair
+powershell.exe -ExecutionPolicy Bypass -File .\Cipher-System-Check-v7.ps1 -Mode Core -RunRepair
 
 # Diagnostics + GPU TDR tweak
-powershell.exe -ExecutionPolicy Bypass -File .\Cipher-System-Check-v7-Core.ps1 -RunTdrTweak
+powershell.exe -ExecutionPolicy Bypass -File .\Cipher-System-Check-v7.ps1 -Mode Core -RunTdrTweak
 
 # Diagnostics + all repairs
-powershell.exe -ExecutionPolicy Bypass -File .\Cipher-System-Check-v7-Core.ps1 -RunRepair -RunTdrTweak -RunNetworkReset
+powershell.exe -ExecutionPolicy Bypass -File .\Cipher-System-Check-v7.ps1 -Mode Core -RunRepair -RunTdrTweak -RunNetworkReset
 ```
 
 ---
@@ -315,7 +315,7 @@ wevtutil cl System
 ### Problem: Can't apply repairs - "Access Denied"
 **Solution:** Some repairs require full admin and UAC bypass:
 ```powershell
-powershell.exe -WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -Command "& '.\Cipher-System-Check-v7-Core.ps1' -RunRepair"
+powershell.exe -WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -File .\Cipher-System-Check-v7.ps1 -Mode Core -RunRepair
 ```
 
 ### Problem: Memory Diagnostics won't schedule
@@ -332,13 +332,13 @@ mdsched.exe
 ### Running Specific Repairs Only
 ```powershell
 # Windows repairs only
-.\Cipher-System-Check-v7-Core.ps1 -RunRepair
+.\Cipher-System-Check-v7.ps1 -Mode Core -RunRepair
 
 # GPU tweaks only
-.\Cipher-System-Check-v7-Core.ps1 -RunTdrTweak
+.\Cipher-System-Check-v7.ps1 -Mode Core -RunTdrTweak
 
 # Combine multiple repairs
-.\Cipher-System-Check-v7-Core.ps1 -RunRepair -RunTdrTweak -RunDefenderScan
+.\Cipher-System-Check-v7.ps1 -Mode Core -RunRepair -RunTdrTweak -RunDefenderScan
 ```
 
 ### Scheduling Regular Checks
@@ -346,8 +346,8 @@ mdsched.exe
 # Create scheduled task for weekly diagnostics
 $taskName = "CipherSystemCheck"
 # Set $scriptPath to the full path where you saved the scripts, for example:
-$scriptPath = 'C:\Path\To\Scripts\Cipher-System-Check-v7-Core.ps1'
-$action = New-ScheduledTaskAction -Execute powershell.exe -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`""
+$scriptPath = 'C:\Path\To\Scripts\Cipher-System-Check-v7.ps1'
+$action = New-ScheduledTaskAction -Execute powershell.exe -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`" -Mode Core"
 $trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At 3AM
 Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -RunLevel Highest
 ```

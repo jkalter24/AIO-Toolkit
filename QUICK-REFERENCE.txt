@@ -17,8 +17,9 @@
 ```
 Downloads/
 ├─ Cipher-System-Check-v7-Launcher.bat          ← CLICK THIS FIRST
-├─ Cipher-System-Check-v7-GUI.ps1               (do not edit)
-├─ Cipher-System-Check-v7-Core.ps1              (do not edit)
+├─ Cipher-System-Check-v7.ps1                   (official script entrypoint)
+├─ Cipher-System-Check-v7-GUI.ps1               (internal GUI engine)
+├─ Cipher-System-Check-v7-Core.ps1              (internal diagnostics engine)
 ├─ Cipher-System-Check-v7-README.md             (DETAILED GUIDE)
 └─ Cipher-System-Check-v7-SUMMARY.txt           (THIS FILE)
 
@@ -67,16 +68,19 @@ Local AppData/
 
 ```powershell
 # Just diagnostics
-.\Cipher-System-Check-v7-Core.ps1
+.\Cipher-System-Check-v7.ps1 -Mode Core
 
 # Diagnostics + Windows repairs
-.\Cipher-System-Check-v7-Core.ps1 -RunRepair
+.\Cipher-System-Check-v7.ps1 -Mode Core -RunRepair
 
 # All possible repairs
-.\Cipher-System-Check-v7-Core.ps1 -RunRepair -RunTdrTweak -RunNetworkReset -RunMemDiag -RunDefenderScan
+.\Cipher-System-Check-v7.ps1 -Mode Core -RunRepair -RunTdrTweak -RunNetworkReset -RunMemDiag -RunDefenderScan
 
 # Silent mode (for scripts)
-.\Cipher-System-Check-v7-Core.ps1 -QuietMode
+.\Cipher-System-Check-v7.ps1 -Mode Core -QuietMode
+
+# Fast smoke test
+.\Cipher-System-Check-v7.ps1 -Mode Test
 ```
 
 ---
@@ -178,7 +182,7 @@ Storage: 35 points
 ### If System Softlocks Every Few Minutes
 ```powershell
 # Fast diagnostics without heavy scanning
-.\Cipher-System-Check-v7-Core.ps1 -QuietMode
+.\Cipher-System-Check-v7.ps1 -Mode Core -QuietMode
 # Don't apply repairs yet; just identify the issue
 ```
 
@@ -192,7 +196,7 @@ Storage: 35 points
 ### If You Suspect WHEA / RAM
 ```powershell
 # Run memory test (requires reboot)
-.\Cipher-System-Check-v7-Core.ps1 -RunMemDiag
+.\Cipher-System-Check-v7.ps1 -Mode Core -RunMemDiag
 # Or manually: mdsched.exe
 ```
 

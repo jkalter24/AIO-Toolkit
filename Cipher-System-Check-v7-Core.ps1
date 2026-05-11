@@ -33,12 +33,11 @@ if ($script:Config.UserSpecific -and $script:Config.UserSpecific.CustomLogFolder
     $LogRoot = $script:Config.UserSpecific.CustomLogFolder
 } elseif ($script:Config.Logging.UseLocalAppData -and $env:LOCALAPPDATA) {
     $LogRoot = Join-Path $env:LOCALAPPDATA 'CipherCheck\Logs'
-} elseif ($env:LOCALAPPDATA) {
-    $LogRoot = Join-Path $env:LOCALAPPDATA 'CipherCheck\Logs'
 } else {
     $LogRoot = Join-Path $env:USERPROFILE $script:Config.Logging.FallbackFolder
 }
 New-Item -ItemType Directory -Force -Path $LogRoot | Out-Null
+$script:CommandProcessor = if ($env:COMSPEC) { $env:COMSPEC } else { 'cmd.exe' }
 
 # Quick test mode: generate a small, valid diagnostic and exit early to allow fast GUI testing.
 if ($TestMode) {
@@ -57,7 +56,7 @@ if ($TestMode) {
         StorageTimeouts = @()
         TopIssue = 'Test Mode - No issues detected'
         TopIssueScore = 0
-        AllScores = @{ Storage = 0; WHEA = 0; GPU = 0; Memory = 0 }
+        AllScores = @{ Storage = 0; Hardware = 0; WHEA = 0; GPU = 0; Memory = 0 }
         Timestamp = (Get-Date).ToString()
     }
 
@@ -198,8 +197,13 @@ function Complete-Progress {
     Write-ProgressSnapshot -Phase $Phase -Message $Message -Percent 100 -Detail $Detail -State 'Completed'
 }
 
-function Invoke-Cmd { param([string]$Cmd, [string]$OutName)
-    $output = cmd /c "$Cmd" 2>&1
+function Invoke-Cmd {
+    param(
+        [Parameter(Mandatory = $true)][string]$Cmd,
+        [Parameter(Mandatory = $true)][string]$OutName
+    )
+
+    $output = & $script:CommandProcessor /d /s /c $Cmd 2>&1
     $output | Out-File -FilePath (Join-Path $LogRoot $OutName) -Encoding utf8 -Force
     return $output
 }
@@ -210,6 +214,8 @@ function Test-Admin {
 }
 
 function Add-Score { param([string]$Name, [int]$Points, [string]$Reason)
+    if (-not $global:Scores.Contains($Name)) { $global:Scores[$Name] = 0 }
+    if (-not $global:Reasons.Contains($Name)) { $global:Reasons[$Name] = @() }
     $global:Scores[$Name] += $Points
     $global:Reasons[$Name] += @($Reason)
 }
@@ -232,6 +238,8 @@ function Convert-ToSingleLineText {
 
 function Get-RecentSystemEvents {
     param([int]$Days = 30)
+
+    if ($Days -lt 1) { $Days = 1 }
 
     try {
         Get-WinEvent -FilterHashtable @{LogName='System'; StartTime=(Get-Date).AddDays(-$Days)} -ErrorAction Stop |
@@ -258,7 +266,9 @@ function Invoke-WindowsUpdateMaintenance {
 
 function Get-SSDHealthDetail {
     <#
-    Fetch deep SSD diagnostics: SMART data via storage reliability counters
+    Fetch deep SSD diagnostics: SMART data via storage reliability counters.
+    Falls back to Win32_DiskDrive inventory so the GUI can still populate drive cards
+    on systems where Storage module reliability counters are unavailable.
     #>
     $ssdDetails = @()
     try {
@@ -270,7 +280,7 @@ function Get-SSDHealthDetail {
                 Size = "{0} GB" -f [math]::Round($disk.Size / 1GB, 2)
                 HealthStatus = $disk.HealthStatus
                 OperationalStatus = $disk.OperationalStatus
-                SerialNumber = ""
+                SerialNumber = $disk.SerialNumber
                 Temperature = "N/A"
                 Wear = "N/A"
                 ReadErrors = 0
@@ -278,26 +288,51 @@ function Get-SSDHealthDetail {
                 PowerOnHours = "N/A"
                 UnsafeShutdowns = 0
             }
-            
-            # Try to get detailed reliability counters
+
+            # Try to get detailed reliability counters.
             if (Get-Command Get-StorageReliabilityCounter -ErrorAction SilentlyContinue) {
                 try {
                     $counter = Get-StorageReliabilityCounter -PhysicalDisk $disk
                     if ($counter) {
-                        $diskInfo.Temperature = "{0}C" -f $counter.Temperature
-                        $diskInfo.Wear = "{0}%" -f $counter.Wear
-                        $diskInfo.ReadErrors = $counter.ReadErrorsTotal
-                        $diskInfo.WriteErrors = $counter.WriteErrorsTotal
-                        $diskInfo.PowerOnHours = $counter.PowerOnHours
-                        $diskInfo.UnsafeShutdowns = $counter.UnsafeShutdowns
+                        if ($null -ne $counter.Temperature) { $diskInfo.Temperature = "{0}C" -f $counter.Temperature }
+                        if ($null -ne $counter.Wear) { $diskInfo.Wear = "{0}%" -f $counter.Wear }
+                        $diskInfo.ReadErrors = if ($null -ne $counter.ReadErrorsTotal) { $counter.ReadErrorsTotal } else { 0 }
+                        $diskInfo.WriteErrors = if ($null -ne $counter.WriteErrorsTotal) { $counter.WriteErrorsTotal } else { 0 }
+                        $diskInfo.PowerOnHours = if ($null -ne $counter.PowerOnHours) { $counter.PowerOnHours } else { 'N/A' }
+                        $diskInfo.UnsafeShutdowns = if ($null -ne $counter.UnsafeShutdowns) { $counter.UnsafeShutdowns } else { 0 }
                     }
                 } catch { }
             }
-            
+
             $ssdDetails += [pscustomobject]$diskInfo
         }
     } catch { }
-    
+
+    if ($ssdDetails.Count -eq 0) {
+        try {
+            $diskDrives = Get-CimInstance Win32_DiskDrive -ErrorAction Stop
+            foreach ($drive in $diskDrives) {
+                $status = if ($drive.Status) { $drive.Status } else { 'Unknown' }
+                $mediaType = if ($drive.MediaType) { $drive.MediaType } else { 'Disk drive' }
+                $sizeText = if ($drive.Size) { "{0} GB" -f [math]::Round($drive.Size / 1GB, 2) } else { 'N/A' }
+                $ssdDetails += [pscustomobject][ordered]@{
+                    FriendlyName = $drive.Model
+                    MediaType = $mediaType
+                    Size = $sizeText
+                    HealthStatus = $status
+                    OperationalStatus = $status
+                    SerialNumber = $drive.SerialNumber
+                    Temperature = 'N/A'
+                    Wear = 'N/A'
+                    ReadErrors = 0
+                    WriteErrors = 0
+                    PowerOnHours = 'N/A'
+                    UnsafeShutdowns = 0
+                }
+            }
+        } catch { }
+    }
+
     return $ssdDetails
 }
 
@@ -467,7 +502,7 @@ Write-Section "Windows Integrity Checks" -Silent | Out-Null
 try {
     $sfcOut = Join-Path $LogRoot 'sfc.txt'
     $sfcCmd = "/c sfc /scannow > `"$sfcOut`" 2>&1"
-    $sfcProc = Start-Process -FilePath $env:COMSPEC -ArgumentList $sfcCmd -WindowStyle Hidden -PassThru -ErrorAction Stop
+    $sfcProc = Start-Process -FilePath $script:CommandProcessor -ArgumentList $sfcCmd -WindowStyle Hidden -PassThru -ErrorAction Stop
     while (-not $sfcProc.HasExited) {
         Set-ProgressPhase -Phase 'Windows Integrity Checks' -Message 'sfc /scannow (running)' -Percent 20 -Detail 'sfc /scannow'
         Start-Sleep -Seconds 8
@@ -488,7 +523,7 @@ try {
         Set-ProgressPhase -Phase 'Windows Integrity Checks' -Message $d.Cmd -Percent $d.Pct -Detail $d.Cmd
         $outFile = Join-Path $LogRoot $($d.Out)
         $cmd = "/c $($d.Cmd) > `"$outFile`" 2>&1"
-        $proc = Start-Process -FilePath $env:COMSPEC -ArgumentList $cmd -WindowStyle Hidden -PassThru -ErrorAction Stop
+        $proc = Start-Process -FilePath $script:CommandProcessor -ArgumentList $cmd -WindowStyle Hidden -PassThru -ErrorAction Stop
         while (-not $proc.HasExited) {
             Set-ProgressPhase -Phase 'Windows Integrity Checks' -Message "$($d.Cmd) (running)" -Percent $d.Pct -Detail $d.Cmd
             Start-Sleep -Seconds 10
@@ -525,7 +560,7 @@ foreach ($driveLetter in $fixedDriveLetters) {
     try {
         $outFile = Join-Path $LogRoot ("chkdsk_{0}_scan.txt" -f $driveLetter)
         $cmd = "/c chkdsk $driveLetter`: /scan > `"$outFile`" 2>&1"
-        $proc = Start-Process -FilePath $env:COMSPEC -ArgumentList $cmd -WindowStyle Hidden -PassThru -ErrorAction Stop
+        $proc = Start-Process -FilePath $script:CommandProcessor -ArgumentList $cmd -WindowStyle Hidden -PassThru -ErrorAction Stop
 
         # Poll the running chkdsk and emit frequent progress snapshots so the GUI/watchdog stays informed
         while (-not $proc.HasExited) {
@@ -730,7 +765,7 @@ if ($RunRepair) {
     try {
         $outFile = Join-Path $LogRoot 'dism_restorehealth_after_reset.txt'
         $cmd = "/c DISM /Online /Cleanup-Image /RestoreHealth > `"$outFile`" 2>&1"
-        $proc = Start-Process -FilePath $env:COMSPEC -ArgumentList $cmd -WindowStyle Hidden -PassThru -ErrorAction Stop
+        $proc = Start-Process -FilePath $script:CommandProcessor -ArgumentList $cmd -WindowStyle Hidden -PassThru -ErrorAction Stop
         while (-not $proc.HasExited) {
             Set-ProgressPhase -Phase 'Applying Windows Repairs' -Message 'DISM RestoreHealth (running)' -Percent 98 -Detail 'DISM /RestoreHealth'
             Start-Sleep -Seconds 10
